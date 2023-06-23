@@ -15,6 +15,7 @@ import copy
 import scipy.stats as stats
 import json
 import shap
+import os
 from transformers import RobertaTokenizerFast
 
 
@@ -202,9 +203,6 @@ class TextDataset():
         if init_train == False:
             # output dataset's name
             print('Dataset:{}'.format(self.dataset_name))
-
-
-            
             train_datapath = './data/' + self.dataset_name + '.train.jsonl'
             dev_datapath = './data/' + self.dataset_name + '.dev.jsonl'
             test_datapath = './data/' + self.dataset_name + '.test.jsonl'
