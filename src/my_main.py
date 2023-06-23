@@ -7,6 +7,7 @@ import sys
 import config as cf
 import data_process
 import model
+import argparse
 
 
 
@@ -116,22 +117,21 @@ def MAIN():
         f.write('Final BaseFair in {}-Rounds= {}'.format(cf.Round, f_bfairness))
         f.write('\n')
         
-if __name__ == "__main__":
-
-    # set path
-    os.chdir("/home/code/")
-
-    # read configuration
+def main():
     print('sys.argv={}'.format(sys.argv))
-
-    # Read Dataset and Model info
-    for i in range(len(sys.argv)):
-        if sys.argv[i] == '--Dataset_Name' and i+1<len(sys.argv):
-            cf.Dataset_Names = [sys.argv[i+1]]
-        if sys.argv[i] == '--Base_Model' and i+1<len(sys.argv):
-            cf.Base_Model = sys.argv[i+1]
-
+    parser = argparse.ArgumentParser(
+        prog='Debias Model',
+        description='Test run the models',
+    )
+    parser.add_argument('--Dataset_Name', type=str, default='Amazon', help='Dataset Name')  
+    parser.add_argument('--Base_Model', type=str, default='TextCNN', help='Base Model Name')
+    args = parser.parse_args()
+    cf.Dataset_Names = [args.Dataset_Name]
+    cf.Base_Model = args.Base_Model
     # Run model on datasets
     for name in cf.Dataset_Names:
         cf.Dataset_Name = name
         MAIN()
+
+if __name__ == "__main__":
+    main()
