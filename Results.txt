@@ -166,3 +166,171 @@ test_factual_acc=68.83%|
 test_counterfactual_maf1=68.83%| 
 test_factual_maf1=69.48%| 
 
+ARC-TextCNN-Seed=0-Epoch=0 
+ | 
+dev_counterfactual_maf1=29.35% | 
+test_counterfactual_acc=66.41%| 
+test_factual_acc=66.41%| 
+test_counterfactual_maf1=54.16%| 
+test_factual_maf1=54.16%| 
+
+ARC-TextCNN-Seed=0-Epoch=1 
+ | 
+dev_counterfactual_maf1=33.83% | 
+test_counterfactual_acc=64.06%| 
+test_factual_acc=57.03%| 
+test_counterfactual_maf1=46.41%| 
+test_factual_maf1=49.13%| 
+
+ARC-TextCNN-Seed=0-Epoch=2 
+ | 
+dev_counterfactual_maf1=38.68% | 
+test_counterfactual_acc=60.94%| 
+test_factual_acc=57.03%| 
+test_counterfactual_maf1=38.28%| 
+test_factual_maf1=41.73%| 
+
+ARC-TextCNN-Seed=0-Epoch=3 
+ | 
+dev_counterfactual_maf1=37.57% | 
+test_counterfactual_acc=67.19%| 
+test_factual_acc=62.50%| 
+test_counterfactual_maf1=41.73%| 
+test_factual_maf1=52.06%| 
+
+ARC-TextCNN-Seed=0-Epoch=4 
+ | 
+dev_counterfactual_maf1=35.22% | 
+test_counterfactual_acc=62.50%| 
+test_factual_acc=60.94%| 
+test_counterfactual_maf1=47.28%| 
+test_factual_maf1=50.64%| 
+
+ARC-TextCNN-Seed=0-Epoch=5 
+ | 
+dev_counterfactual_maf1=29.68% | 
+test_counterfactual_acc=67.97%| 
+test_factual_acc=67.97%| 
+test_counterfactual_maf1=53.04%| 
+test_factual_maf1=53.04%| 
+
+ARC-TextCNN-Seed=0-Epoch=6 
+ | 
+dev_counterfactual_maf1=40.34% | 
+test_counterfactual_acc=64.06%| 
+test_factual_acc=64.06%| 
+test_counterfactual_maf1=42.05%| 
+test_factual_maf1=42.05%| 
+
+ARC-TextCNN-Seed=0-Epoch=7 
+ | 
+dev_counterfactual_maf1=32.67% | 
+test_counterfactual_acc=66.41%| 
+test_factual_acc=66.41%| 
+test_counterfactual_maf1=46.86%| 
+test_factual_maf1=46.86%| 
+
+ARC-TextCNN-Seed=0-Epoch=8 
+ | 
+dev_counterfactual_maf1=33.79% | 
+test_counterfactual_acc=60.16%| 
+test_factual_acc=58.59%| 
+test_counterfactual_maf1=46.04%| 
+test_factual_maf1=46.45%| 
+
+ARC-TextCNN-Seed=0-Epoch=9 
+ | 
+dev_counterfactual_maf1=32.72% | 
+test_counterfactual_acc=63.28%| 
+test_factual_acc=61.72%| 
+test_counterfactual_maf1=44.02%| 
+test_factual_maf1=46.96%| 
+
+ARC-TextCNN-Seed=0-Epoch=10 
+ | 
+dev_counterfactual_maf1=30.15% | 
+test_counterfactual_acc=64.84%| 
+test_factual_acc=64.06%| 
+test_counterfactual_maf1=46.37%| 
+test_factual_maf1=47.78%| 
+
+ARC-TextCNN-Seed=0-Epoch=11 
+ | 
+dev_counterfactual_maf1=33.82% | 
+test_counterfactual_acc=66.41%| 
+test_factual_acc=67.19%| 
+test_counterfactual_maf1=56.59%| 
+test_factual_maf1=53.70%| 
+
+ARC-TextCNN-Seed=0-Epoch=12 
+ | 
+dev_counterfactual_maf1=36.00% | 
+test_counterfactual_acc=65.62%| 
+test_factual_acc=64.84%| 
+test_counterfactual_maf1=45.55%| 
+test_factual_maf1=43.18%| 
+
+ARC-TextCNN-Seed=0-Epoch=13 
+ | 
+dev_counterfactual_maf1=35.79% | 
+test_counterfactual_acc=61.72%| 
+test_factual_acc=62.50%| 
+test_counterfactual_maf1=49.95%| 
+test_factual_maf1=44.41%| 
+
+ARC-TextCNN-Seed=0-Epoch=14 
+ | 
+dev_counterfactual_maf1=30.96% | 
+test_counterfactual_acc=63.28%| 
+test_factual_acc=63.28%| 
+test_counterfactual_maf1=50.04%| 
+test_factual_maf1=50.04%| 
+
+ARC-TextCNN-Seed=0-Epoch=15 
+ | 
+dev_counterfactual_maf1=38.09% | 
+test_counterfactual_acc=64.84%| 
+test_factual_acc=63.28%| 
+test_counterfactual_maf1=49.08%| 
+test_factual_maf1=53.76%| 
+
+ARC-TextCNN-Seed=0-Epoch=16 
+ | 
+dev_counterfactual_maf1=37.92% | 
+test_counterfactual_acc=67.19%| 
+test_factual_acc=67.19%| 
+test_counterfactual_maf1=53.41%| 
+test_factual_maf1=53.52%| 
+
+ARC-TextCNN-Seed=0-Epoch=17 
+ | 
+dev_counterfactual_maf1=34.42% | 
+test_counterfactual_acc=66.41%| 
+test_factual_acc=59.38%| 
+test_counterfactual_maf1=45.24%| 
+test_factual_maf1=51.53%| 
+
+ARC-TextCNN-Seed=0-Epoch=18 
+ | 
+dev_counterfactual_maf1=38.18% | 
+test_counterfactual_acc=73.44%| 
+test_factual_acc=64.84%| 
+test_counterfactual_maf1=49.16%| 
+test_factual_maf1=60.13%| 
+
+ARC-TextCNN-Seed=0-Epoch=19 
+ | 
+dev_counterfactual_maf1=33.78% | 
+test_counterfactual_acc=67.97%| 
+test_factual_acc=66.41%| 
+test_counterfactual_maf1=47.93%| 
+test_factual_maf1=49.17%| 
+
+ARC-TextCNN-Seed=0-Epoch=20 
+ | 
+dev_counterfactual_maf1=32.20% | 
+test_counterfactual_acc=71.09%| 
+test_factual_acc=67.97%| 
+test_counterfactual_maf1=49.70%| 
+test_factual_maf1=51.29%| 
+
