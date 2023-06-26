@@ -1,0 +1,13 @@
+TextCNN
+SUM_Tanh
+ARC
+0.85
+Init Acc in 1-Rounds= 0.59375
+Init F1 in 1-Rounds= 0.40551560338794385
+Init Fairness in 1-Rounds= 41.743381562903295
+Final Acc in 1-Rounds= 0.640625
+Final BaseAcc in 1-Rounds= 0.640625
+Final F1 in 1-Rounds= 0.42045622133940075
+Final BaseF1 in 1-Rounds= 0.42045622133940075
+Final Fair in 1-Rounds= 41.83966180168715
+Final BaseFair in 1-Rounds= 41.873051588914315

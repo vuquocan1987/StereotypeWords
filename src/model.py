@@ -455,7 +455,7 @@ class RoBERTa(nn.Module):
         self.hidden_layer_2 = 128
         self.hidden_layer = 100
 
-        self.roberta = RobertaModel.from_pretrained('./code/roberta.base', checkpoint_file='model.pt')
+        self.roberta = RobertaModel.from_pretrained('roberta.base', checkpoint_file='model.pt')
         self.tokenizer = RobertaTokenizerFast.from_pretrained('roberta-base')
 
         for p in self.parameters():

@@ -8,6 +8,7 @@ import numpy as np
 import config as cf
 # from progressbar import *
 from tqdm import tqdm
+from collections import defaultdict
 
 import random
 import math
@@ -17,15 +18,15 @@ import json
 import shap
 import os
 from transformers import RobertaTokenizerFast
+from dataclasses import dataclass, field
 
-
+@dataclass
 class Example:
-    def __init__(self, text, label):
-        self.text = text
-        self.label = label
-        self.fully_counterfactual_text = []
-        self.partial_counterfactual_text = []
-
+    text: str
+    label: str
+    fully_counterfactual_text: list[str] = field(default_factory=list)
+    partial_counterfactual_text: list[str] = field(default_factory=list)
+    
 class TextDataset():
     def __init__(self, dataset_name):
         cf.random_setting()
@@ -48,21 +49,15 @@ class TextDataset():
 
     # Conform
     def Conform_Dev_Test(self, dev_examples, test_examples):
-        examples = dev_examples + test_examples
-        label2examples = {}
-        for example in examples:
-            label = example.label
-            if label not in label2examples:
-                label2examples[label] = []
-            label2examples[label].append(example)
+        label2examples = defaultdict(list)
+        for example in dev_examples + test_examples:
+            label2examples[example.label].append(example)
         dev_examples_, test_examples_ = [], []
-        for key in label2examples.keys():
-            subexamples = label2examples[key]
+        for subexamples in label2examples.values():
             random.shuffle(subexamples)
             seperator = int(len(subexamples) / 2)
             dev_examples_.extend(subexamples[:seperator])
             test_examples_.extend(subexamples[seperator:])
-
         return dev_examples_, test_examples_
 
     # initialize
@@ -211,12 +206,12 @@ class TextDataset():
             dev_examples = self.Read_from_Datapath(dev_datapath)
             test_examples = self.Read_from_Datapath(test_datapath)
 
-            cf.YList = sorted(list(set([example.label for example in train_examples + dev_examples + test_examples])))
+            cf.YList = sorted(set(example.label for example in train_examples + dev_examples + test_examples))
 
             for example in train_examples + dev_examples + test_examples:
                 example.label = cf.YList.index(example.label)
                 
-            cf.YList = sorted(list(set([example.label for example in train_examples + dev_examples + test_examples])))
+            cf.YList = list(range(len(cf.YList)))
 
 
             dev_examples, test_examples = self.Conform_Dev_Test(dev_examples, test_examples)
