@@ -385,7 +385,6 @@ class TextCNN(nn.Module):
         return out
 
 def token(text):
-
     xs = torch.zeros([len(text), cf.XMaxLen, 300])
     for b_idx in range(len(text)):
         for index in range(0, cf.XMaxLen):
@@ -393,13 +392,11 @@ def token(text):
                 break
             else:
                 word = text[b_idx][index]
-                if word in cf.word2id:
+                if word in cf.word2id or word.lower() in cf.word2id:
+                    if word not in cf.word2id:
+                        word = word.lower()
                     vector = cf.embedding.weight[cf.word2id[word]]
                     xs[b_idx][index] = vector
-                elif word.lower() in cf.word2id:
-                    xs = cf.embedding.weight[cf.word2id[word.lower()]]
-                    xs[b_idx][index] = vector
-
     return xs
 
 
