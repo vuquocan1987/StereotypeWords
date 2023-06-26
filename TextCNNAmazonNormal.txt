@@ -1,0 +1,13 @@
+TextCNN
+SUM_Tanh
+Amazon
+0.3
+Init Acc in 1-Rounds= 0.7066666666666667
+Init F1 in 1-Rounds= 0.7065492863812193
+Init Fairness in 1-Rounds= 16.205455408958088
+Final Acc in 1-Rounds= 0.7433333333333333
+Final BaseAcc in 1-Rounds= 0.7233333333333334
+Final F1 in 1-Rounds= 0.7429877947017658
+Final BaseF1 in 1-Rounds= 0.7210740330006385
+Final Fair in 1-Rounds= 16.23760406258365
+Final BaseFair in 1-Rounds= 16.347332396836745

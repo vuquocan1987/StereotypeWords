@@ -5,8 +5,7 @@ import warnings
 import copy
 import sys
 import config as cf
-import data_process
-import model
+import model, data_process
 import argparse
 
 
