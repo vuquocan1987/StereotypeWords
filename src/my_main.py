@@ -70,7 +70,7 @@ def MAIN():
         tr = model.Train(model_x, model_s)
         
         # check whether pre-trained model exists
-        if cf.Pretrained == False:                        
+        if not cf.Pretrained:                        
             f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness = tr.Init_Train(train_loader, dev_loader, test_loader)                                      
         else:                    
             tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype + 'xinit.pt'))           

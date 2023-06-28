@@ -334,3 +334,43 @@ test_factual_acc=67.97%|
 test_counterfactual_maf1=49.70%| 
 test_factual_maf1=51.29%| 
 
+Amazon-TextCNN-Seed=0-Epoch=0 
+ | 
+dev_counterfactual_maf1=61.88% | 
+test_counterfactual_acc=65.00%| 
+test_factual_acc=65.50%| 
+test_counterfactual_maf1=65.44%| 
+test_factual_maf1=64.91%| 
+
+Amazon-TextCNN-Seed=0-Epoch=1 
+ | 
+dev_counterfactual_maf1=64.92% | 
+test_counterfactual_acc=64.83%| 
+test_factual_acc=65.50%| 
+test_counterfactual_maf1=64.92%| 
+test_factual_maf1=64.24%| 
+
+Amazon-TextCNN-Seed=0-Epoch=2 
+ | 
+dev_counterfactual_maf1=69.11% | 
+test_counterfactual_acc=66.50%| 
+test_factual_acc=64.67%| 
+test_counterfactual_maf1=64.63%| 
+test_factual_maf1=66.10%| 
+
+Amazon-TextCNN-Seed=0-Epoch=3 
+ | 
+dev_counterfactual_maf1=69.04% | 
+test_counterfactual_acc=70.17%| 
+test_factual_acc=69.83%| 
+test_counterfactual_maf1=69.72%| 
+test_factual_maf1=70.11%| 
+
+Amazon-TextCNN-Seed=0-Epoch=4 
+ | 
+dev_counterfactual_maf1=68.73% | 
+test_counterfactual_acc=71.50%| 
+test_factual_acc=70.83%| 
+test_counterfactual_maf1=70.71%| 
+test_factual_maf1=71.02%| 
+
