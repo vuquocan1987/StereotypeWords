@@ -363,11 +363,11 @@ class TextCNN(nn.Module):
 
     def forward(self, text):
 
-        if cf.Explain == False:
-            xs = token(text).cuda()
-        else:
-            xs = token(text)
-
+        # if not cf.Explain:
+        #     xs = token(text).cuda()
+        # else:
+        #     xs = token(text)
+        xs = token(text).cuda()
         xs = xs.unsqueeze(1)
         in_size = xs.size(0)
 
@@ -425,11 +425,11 @@ class TextRCNN(nn.Module):
 
     def forward(self, text):
 
-        if cf.Explain == False:
-            xs = token(text).cuda()
-        else:
-            xs = token(text)
-
+        # if not cf.Explain:
+        #     xs = token(text).cuda()
+        # else:
+        #     xs = token(text)
+        xs = token(text).cuda()
         last_hidden_state, (c, h) = self.lstm(xs)
         out = torch.cat((xs, last_hidden_state),2)
         out = F.relu(self.linear1(out))
