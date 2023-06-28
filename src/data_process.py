@@ -160,7 +160,7 @@ class TextDataset():
                                 keyword_class_count[example.label] = 1
                             else:
                                 keyword_class_count[example.label] += 1
-                    keyword_class_p ercentage = {}
+                    keyword_class_percentage = {}
                     keyword_sum = sum(list(keyword_class_count.values()))
                     entropy = 0
                     for _class in class_count.keys():
