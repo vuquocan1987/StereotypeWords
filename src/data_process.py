@@ -110,15 +110,14 @@ class TextDataset():
 
         model = train.model_x
         important_words = []
-        if cf.Pretrained == False:
+        if not cf.Pretrained:
             if cf.Stereotype != 'Imbword':
                 if cf.Base_Model == 'RoBERTa' or cf.Base_Model == 'GPT2':
-                    masker = RobertaTokenizerFast.from_pretrained(
+                    roberta_tokenizer = RobertaTokenizerFast.from_pretrained(
                         'roberta-base')
-                    # shap.maskers.Text(cf.custom_tokenizer)
+                    masker = shap.maskers.Text(roberta_tokenizer)
                 elif cf.Base_Model == 'TextCNN' or cf.Base_Model == 'TextRCNN':
                     masker = shap.maskers.Text(r"\W")
-                    model = model.cpu()
                     cf.Explain = True
                 explainer = shap.Explainer(
                     model, masker, output_names=cf.YList, seed=1)
@@ -161,7 +160,7 @@ class TextDataset():
                                 keyword_class_count[example.label] = 1
                             else:
                                 keyword_class_count[example.label] += 1
-                    keyword_class_percentage = {}
+                    keyword_class_p ercentage = {}
                     keyword_sum = sum(list(keyword_class_count.values()))
                     entropy = 0
                     for _class in class_count.keys():
@@ -201,7 +200,7 @@ class TextDataset():
                 else:
                     example.partial_counterfactual_text.append(word)
 
-        if cf.Pretrained == False:
+        if not cf.Pretrained:
             np.save(cf.Base_Model + cf.Dataset_Name +
                     cf.Stereotype + 'keyword.npy', important_words)
             np.save(cf.Base_Model + cf.Dataset_Name +
