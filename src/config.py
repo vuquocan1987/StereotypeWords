@@ -45,9 +45,9 @@ Fusion = 'SUM_Tanh'
 Base_Model = 'TextCNN'
 # TextCNN RoBERTa TextRCNN
 
-Stereotype = 'Normal'
+Stereotype = 'Imbword'
 # 'Keyword' 'Imbword' 'Normal'
-Init_epoch = 20
+Init_epoch = 1
 # epoch for initial training
 Epoch = 20
 # epoch for fusion training

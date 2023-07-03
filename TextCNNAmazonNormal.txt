@@ -11,3 +11,16 @@ Final F1 in 1-Rounds= 0.7429877947017658
 Final BaseF1 in 1-Rounds= 0.7210740330006385
 Final Fair in 1-Rounds= 16.23760406258365
 Final BaseFair in 1-Rounds= 16.347332396836745
+TextCNN
+SUM_Tanh
+Amazon
+0.8
+Init Acc in 1-Rounds= 0.645
+Init F1 in 1-Rounds= 0.6439228666716819
+Init Fairness in 1-Rounds= 16.195873105575963
+Final Acc in 1-Rounds= 0.7133333333333334
+Final BaseAcc in 1-Rounds= 0.7133333333333334
+Final F1 in 1-Rounds= 0.7100341665168135
+Final BaseF1 in 1-Rounds= 0.7098221817322942
+Final Fair in 1-Rounds= 16.42124589771358
+Final BaseFair in 1-Rounds= 16.448339859730694
