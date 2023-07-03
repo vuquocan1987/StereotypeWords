@@ -8,7 +8,7 @@ import numpy as np
 import config as cf
 # from progressbar import *
 from tqdm import tqdm
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 import random
 import math
@@ -100,13 +100,9 @@ class TextDataset():
     # initialize
     def Public(self, train, train_loader):
 
-        class_count = {}
 
-        for i, example in enumerate(self.train_examples):
-            if class_count.get(example.label) == None:
-                class_count[example.label] = 1
-            else:
-                class_count[example.label] += 1
+        classes = [example.label for example in self.train_examples]
+        class_count = Counter(classes)
 
         model = train.model_x
         important_words = []
@@ -135,14 +131,7 @@ class TextDataset():
                         important_words += list(set([shap_values.data[i][idx].strip() for idx in range(len(shap_value))
                                                     if shap_value[idx] > 0 and len(shap_values.data[i][idx].strip()) > 0]))
                 cf.Explain = False
-            else:
-                for batch_idx, (x, fcx, pcx, y, y_tensor) in enumerate(train_loader):
-                    words = []
-                    words += [x[idx].split(' ') for idx in range(len(x))][0]
 
-                    important_words += list(set(words))
-
-                important_words = list(set(important_words))
             model = model.cuda()
 
             # important_words = list(word_shap.keys())
@@ -150,6 +139,7 @@ class TextDataset():
             stereotype_words = []
             keyword_entropy = {}
             if cf.Stereotype != 'Keyword':
+                
                 for keyword in important_words:
                     keyword_class_count = {}
                     for i, example in enumerate(self.train_examples):
