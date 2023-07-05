@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 
 import numpy as np
 # import logging
@@ -98,86 +98,9 @@ class TextDataset():
         self.test_examples = test_examples
 
     # initialize
-    def Public(self, train, train_loader):
-
-
-        classes = [example.label for example in self.train_examples]
-        class_count = Counter(classes)
-
+    def Public(self, train):
         model = train.model_x
-        important_words = []
-        if not cf.Pretrained:
-            if cf.Stereotype != 'Imbword':
-                if cf.Base_Model == 'RoBERTa' or cf.Base_Model == 'GPT2':
-                    roberta_tokenizer = RobertaTokenizerFast.from_pretrained(
-                        'roberta-base')
-                    masker = shap.maskers.Text(roberta_tokenizer)
-                elif cf.Base_Model == 'TextCNN' or cf.Base_Model == 'TextRCNN':
-                    masker = shap.maskers.Text(r"\W")
-                    cf.Explain = True
-                explainer = shap.Explainer(
-                    model, masker, output_names=cf.YList, seed=1)
-                model.eval()
-                word_shap = {}
-
-                for batch_idx, (x, fcx, pcx, y, y_tensor) in enumerate(train_loader):
-                    # if batch_idx > 0:
-                    #     break
-                    print(batch_idx)
-                    shap_values = explainer(x)
-                    for i in range(len(x)):
-                        shap_value = cf.normalization(
-                            shap_values.values[i][:, int(y[i])])
-                        important_words += list(set([shap_values.data[i][idx].strip() for idx in range(len(shap_value))
-                                                    if shap_value[idx] > 0 and len(shap_values.data[i][idx].strip()) > 0]))
-                cf.Explain = False
-
-            model = model.cuda()
-
-            # important_words = list(word_shap.keys())
-
-            stereotype_words = []
-            keyword_entropy = {}
-            if cf.Stereotype != 'Keyword':
-                
-                for keyword in important_words:
-                    keyword_class_count = {}
-                    for i, example in enumerate(self.train_examples):
-                        if keyword not in example.text:
-                            pass
-                        else:
-                            if keyword_class_count.get(example.label) == None:
-                                keyword_class_count[example.label] = 1
-                            else:
-                                keyword_class_count[example.label] += 1
-                    keyword_class_percentage = {}
-                    keyword_sum = sum(list(keyword_class_count.values()))
-                    entropy = 0
-                    for _class in class_count.keys():
-                        keyword_class_percentage[_class] = keyword_class_count.get(
-                            _class, 0) / keyword_sum
-                        entropy -= keyword_class_percentage[_class] * np.log(
-                            keyword_class_percentage[_class] + 1e-8)
-
-                    keyword_entropy[keyword] = entropy
-
-                stereotype_word_list = list(keyword_entropy.values())
-                stereotype_word_list.sort(reverse=True)
-                boundary = stereotype_word_list[int(
-                    len(stereotype_word_list) * cf.Alpha)]
-
-                for keyword in list(keyword_entropy.keys()):
-
-                    if keyword_entropy[keyword] >= boundary:
-                        print(keyword)
-                        stereotype_words.append(keyword)
-                print('stereotype_words lengths: ', len(stereotype_words))
-        else:
-            important_words = np.load(
-                cf.Base_Model + cf.Dataset_Name + cf.Stereotype + 'keyword.npy')
-            stereotype_words = np.load(
-                cf.Base_Model + cf.Dataset_Name + cf.Stereotype + 'imbword.npy')
-
+        stereotype_words = generate_stereotype_words(self.train_examples, model, cf.LOAD_STEREO_TYPE_WORDS_FROM_FILE)
         for i, example in enumerate(self.train_examples + self.dev_examples + self.test_examples):
             example.fully_counterfactual_text = []
             example.partial_counterfactual_text = []
@@ -185,18 +108,14 @@ class TextDataset():
             for j in range(len(text)):
                 word = text[j].strip()
                 example.fully_counterfactual_text.append(cf.Mask_Token)
-                if word not in important_words or word not in stereotype_words:
-                    example.partial_counterfactual_text.append(cf.Mask_Token)
-                else:
+                if word in stereotype_words:
                     example.partial_counterfactual_text.append(word)
+                else:
+                    example.partial_counterfactual_text.append(cf.Mask_Token)
 
-        if not cf.Pretrained:
-            np.save(cf.Base_Model + cf.Dataset_Name +
-                    cf.Stereotype + 'keyword.npy', important_words)
-            np.save(cf.Base_Model + cf.Dataset_Name +
-                    cf.Stereotype + 'imbword.npy', stereotype_words)
+    
 
-    def Read_Data(self, init_train=False, train=None, train_loader=None):
+    def Read_Data(self, init_train=False, train=None):
 
         if init_train == False:
             # output dataset's name
@@ -277,7 +196,7 @@ class TextDataset():
             print(']')
 
         else:
-            self.Public(train, train_loader)
+            self.Public(train)
 
             # MASK ratio
             examples = self.train_examples + self.dev_examples + self.test_examples
@@ -290,9 +209,7 @@ class TextDataset():
             Ratio = Ratio * 1.0 / len(examples)
             print('{:.2%} MASKed ({:.2%} is context)'.format(Ratio, 1.0 - Ratio))
 
-    def Word_Detection(self, train_loader, train):
 
-        self.Read_Data(True, train, train_loader)
 
 
 class TrainDataset(Dataset):
@@ -322,3 +239,75 @@ class TrainDataset(Dataset):
         if cf.Use_GPU == True:
             tensor = tensor.cuda()
         return tensor
+
+
+def generate_stereotype_words(train_examples=None,model=None, load_from_file=False):
+
+
+    if cf.Stereotype == 'Imbword':
+        return get_positive_shap_words(train_examples, model, load_from_file)
+    if cf.Stereotype == 'Keyword':
+        return get_low_entropy_words(train_examples, load_from_file)
+    if cf.Stereotype == 'Normal':
+        # The normal case is just the getting the positive shap words and use them as candidates to find low entropy words among them
+        # The assumption is that those words are bias because they have high contribution to the model and having low entropy
+        stereotype_words = get_low_entropy_words(train_examples) & get_positive_shap_words(train_examples)
+        np.save(cf.Base_Model+cf.Dataset_Name+cf.Stereotype+"low_entropy_positive_shap.npy",list(stereotype_words))
+        return stereotype_words
+    
+def get_low_entropy_words(train_examples,load_from_file=False):
+    key_word_file_path = cf.Base_Model+cf.Dataset_Name+cf.Stereotype+"low_entropy.npy"
+    if load_from_file:
+        return np.load(key_word_file_path, allow_pickle=True)
+    classes = set(example.label for example in train_examples)
+    
+    keyword_entropy = {}
+    key_words_class_count = defaultdict(lambda: defaultdict(int))
+    for example in train_examples:
+        for word in example.text.split(' '):
+            key_words_class_count[word][example.label] += 1
+
+    for word in key_words_class_count.keys():
+        entropy = 0
+        word_class_count = key_words_class_count[word]
+        word_sum = sum(list(word_class_count.values()))
+        for _class in classes:
+            word_class_percentage = word_class_count.get(_class, 0) / word_sum
+            entropy -= word_class_percentage * np.log(word_class_percentage + 1e-8)
+        keyword_entropy[word] = entropy
+    sorted_keyword_entropy = sorted(keyword_entropy.items(), key=lambda x: x[1])
+    stereotype_words = [word for word, _ in sorted_keyword_entropy[:int(cf.Alpha*len(sorted_keyword_entropy))+1]]
+
+    print('stereotype_words lengths: ', len(stereotype_words))
+    np.save(key_word_file_path, stereotype_words)
+    return set(stereotype_words)
+
+def get_positive_shap_words(train_examples = None, model = None,load_from_file=False):
+    positive_path_file_path = cf.Base_Model+cf.Dataset_Name+cf.Stereotype+"positive_shap.npy"
+    if load_from_file:
+        return np.load(positive_path_file_path)
+    model.cuda()
+    model.eval()
+    train_dataset = TrainDataset(train_examples)
+    train_loader = DataLoader(train_dataset, batch_size=cf.Train_Batch_Size, shuffle=False)
+    important_words = []
+    if cf.Base_Model == 'RoBERTa' or cf.Base_Model == 'GPT2':
+        roberta_tokenizer = RobertaTokenizerFast.from_pretrained(
+                        'roberta-base')
+        masker = shap.maskers.Text(roberta_tokenizer)
+    elif cf.Base_Model == 'TextCNN' or cf.Base_Model == 'TextRCNN':
+        masker = shap.maskers.Text(r"\W")
+        cf.Explain = True
+    explainer = shap.Explainer(
+                    model, masker, output_names=cf.YList, seed=1)
+    model.eval()
+    for batch_idx, (x, _, _, y, _) in enumerate(train_loader):
+        print(batch_idx)
+        shap_values = explainer(x)
+        for i in range(len(x)):
+            shap_value = cf.normalization(
+                            shap_values.values[i][:, int(y[i])])
+            important_words += list(set([shap_values.data[i][idx].strip() for idx in range(len(shap_value))
+                                                    if shap_value[idx] > 0 and len(shap_values.data[i][idx].strip()) > 0]))
+    np.save(positive_path_file_path, important_words)
+    return set(important_words)
