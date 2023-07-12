@@ -1,0 +1,7 @@
+{"label": "PART-OF", "text": "[[ Recognition of proper nouns ]] in Japanese text has been studied as a part of the more general problem of << morphological analysis >> in Japanese text processing -LRB- -LSB- 1 -RSB- -LSB- 2 -RSB- -RRB- ."}
+{"label": "USED-FOR", "text": "Recognition of proper nouns in Japanese text has been studied as a part of the more general problem of [[ morphological analysis ]] in << Japanese text processing >> -LRB- -LSB- 1 -RSB- -LSB- 2 -RSB- -RRB- ."}
+{"label": "HYPONYM-OF", "text": "Our morphological analyzer has done all the necessary work for the recognition and classification of << proper names , numerical and temporal expressions >> , i.e. [[ Named Entity -LRB- NE -RRB- items ]] in the Japanese text ."}
+{"label": "CONJUNCTION", "text": "Amorph recognizes NE items in two stages : [[ dictionary lookup ]] and << rule application >> ."}
+{"label": "FEATURE-OF", "text": "They improve the reconstruction results and enforce their consistency with a << priori knowledge >> about [[ object shape ]] ."}
+{"label": "EVALUATE-FOR", "text": "The << model >> is evaluated on [[ English and Czech newspaper texts ]] , and is then validated on French broadcast news transcriptions ."}
+{"label": "COMPARE", "text": "We argue that it is necessary to draw a line between [[ generalizable semantic principles ]] and << domain-specific semantic information >> ."}

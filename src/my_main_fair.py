@@ -26,7 +26,7 @@ def MAIN():
     cf.Pretrained = True
 
     # prepare a specific dataset
-    TextDataset = data_process.TextDataset(cf.Dataset_Name)
+    TextDataset = data_process.TextDataset(cf.Dataset_Name+cf.TEST_SAMPLE)
     # build model for intialized training
     if cf.Base_Model == 'TextCNN' or cf.Base_Model == 'TextRCNN':
 
@@ -47,6 +47,9 @@ def MAIN():
     elif cf.Base_Model == 'RoBERTa':
         model_x = model.RoBERTa()
         model_s = model.RoBERTa()
+    else:
+        warnings.warn(f'No such model: {cf.Base_Model}!')
+        sys.exit(0)
 
     if cf.Use_GPU == True:
         model_x = model_x.cuda()
@@ -54,7 +57,11 @@ def MAIN():
 
     tr = model.Train(model_x, model_s)
     tr.stage = 'Init'
-    tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype + 'xinit.pt'))
+    try:
+        tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + 'xinit.pt'))
+    except:
+        # quick hack to load initial model remember to fix this!
+        tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + "Normal" + 'xinit.pt'))
     #tr.model_s.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype + 'sdebias.pt'))
     train_dataset = data_process.TrainDataset(TextDataset.train_examples)
     test_dataset = data_process.TrainDataset(TextDataset.test_examples)
@@ -62,7 +69,7 @@ def MAIN():
     train_loader = DataLoader(train_dataset, batch_size=cf.Train_Batch_Size, shuffle=cf.DataLoader_Shuffle)
     test_loader = DataLoader(test_dataset, batch_size=cf.DevTest_Batch_Size, shuffle=cf.DataLoader_Shuffle)
     
-    TextDataset.Word_Detection(train_loader, tr)
+    TextDataset.Read_Data(True,tr)
 
     train_dataset = data_process.TrainDataset(TextDataset.train_examples)
     test_dataset = data_process.TrainDataset(TextDataset.test_examples)
@@ -76,8 +83,8 @@ def MAIN():
     
     tr = model.Train(model_x, model_s)
     tr.stage = 'Train'
-    tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype + 'xdebias.pt'))
-    tr.model_s.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype + 'sdebias.pt'))
+    tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + 'xdebias.pt'))
+    tr.model_s.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + 'sdebias.pt'))
     train_dataset = data_process.TrainDataset(TextDataset.train_examples)
     dev_dataset = data_process.TrainDataset(TextDataset.dev_examples)
     test_dataset = data_process.TrainDataset(TextDataset.test_examples)
@@ -85,7 +92,7 @@ def MAIN():
     train_loader = DataLoader(train_dataset, batch_size=cf.Train_Batch_Size, shuffle=cf.DataLoader_Shuffle)
     test_loader = DataLoader(test_dataset, batch_size=cf.DevTest_Batch_Size, shuffle=cf.DataLoader_Shuffle)
     
-    TextDataset.Word_Detection(train_loader, tr)
+    TextDataset.Read_Data(True,tr)
 
     train_dataset = data_process.TrainDataset(TextDataset.train_examples)
     dev_dataset = data_process.TrainDataset(TextDataset.dev_examples)

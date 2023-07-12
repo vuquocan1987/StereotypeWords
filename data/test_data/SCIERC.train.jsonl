@@ -1,0 +1,7 @@
+{"label": "CONJUNCTION", "text": "The agreement in question involves number in [[ nouns ]] and << reflexive pronouns >> and is syntactic rather than semantic in nature because grammatical number in English , like grammatical gender in languages such as French , is partly arbitrary ."}
+{"label": "FEATURE-OF", "text": "The agreement in question involves number in nouns and reflexive pronouns and is syntactic rather than semantic in nature because grammatical number in English , like [[ grammatical gender ]] in << languages >> such as French , is partly arbitrary ."}
+{"label": "HYPONYM-OF", "text": "The agreement in question involves number in nouns and reflexive pronouns and is syntactic rather than semantic in nature because grammatical number in English , like grammatical gender in << languages >> such as [[ French ]] , is partly arbitrary ."}
+{"label": "USED-FOR", "text": "In this paper , a novel [[ method ]] to learn the << intrinsic object structure >> for robust visual tracking is proposed ."}
+{"label": "PART-OF", "text": "Thirdly the learned [[ intrinsic object structure ]] is integrated into a << particle-filter style tracker >> ."}
+{"label": "COMPARE", "text": "Experiments show that the learned [[ tracker ]] performs much better than existing << trackers >> on the tracking of complex non-rigid motions such as fish twisting with self-occlusion and large inter-frame lip motion ."}
+{"label": "EVALUATE-FOR", "text": "However , the [[ sound quality ]] of << NAM and electrolaryngeal speech >> suffers from lack of naturalness ."}

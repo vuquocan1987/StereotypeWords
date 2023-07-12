@@ -27,6 +27,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import re
+from enum import Enum, auto
 
 # All Hyperparameters
 
@@ -45,13 +46,25 @@ Fusion = 'SUM_Tanh'
 Base_Model = 'TextCNN'
 # TextCNN RoBERTa TextRCNN
 
-Stereotype = 'Imbword'
-# 'Keyword' 'Imbword' 'Normal'
-Init_epoch = 1
+StereoType = Enum('StereoType', ['Keyword', 'Imbword', 'Normal', 'RandomMask', 'Noun'])
+Stereotype = StereoType.Normal
+
+# 'Keyword' 'Imbword' 'Normal' 'RandomMask' 'Noun'
+Init_epoch = 40
 # epoch for initial training
 Epoch = 20
 # epoch for fusion training
 Pretrained = False
+LOAD_STEREO_TYPE_WORDS_FROM_FILE = False
+N_GRAM = 1
+MIN_FREQUENCY = 2
+ENTROPY_THRESHOLD = .5
+RANDOM_MASK = False
+RANDOM_MASK_RATE = 0.20
+TEST_SAMPLE = ""
+DATA_PATH = './data/'
+
+# "" mean using real dataset, "Test" mean using test dataset
 Learning_Rate_Init = 5e-4
 # lr for initial training
 Learning_Rate = 5e-4
@@ -71,7 +84,6 @@ Save_Path = './Results.txt'
 Top = 0.4
 INF = 999999999
 Epsilon = 1e-6
-Lowercases = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 Start_Time = ''
 Seed = 0
 Dataset_Name = ''

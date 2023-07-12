@@ -1,0 +1,7 @@
+{"label": "USED-FOR", "text": "This paper presents an [[ algorithm ]] for << computing optical flow , shape , motion , lighting , and albedo >> from an image sequence of a rigidly-moving Lambertian object under distant illumination ."}
+{"label": "FEATURE-OF", "text": "This paper presents an algorithm for computing optical flow , shape , motion , lighting , and albedo from an << image sequence >> of a [[ rigidly-moving Lambertian object ]] under distant illumination ."}
+{"label": "CONJUNCTION", "text": "The problem is formulated in a manner that subsumes structure from [[ motion ]] , << multi-view stereo >> , and photo-metric stereo as special cases ."}
+{"label": "HYPONYM-OF", "text": "The algorithm utilizes both spatial and temporal intensity variation as << cues >> : the [[ former ]] constrains flow and the latter constrains surface orientation ; combining both cues enables dense reconstruction of both textured and texture-less surfaces ."}
+{"label": "PART-OF", "text": "A << parser >> incorporating the [[ control structure ]] and the parsing strategies is currently under implementation ."}
+{"label": "EVALUATE-FOR", "text": "This paper proposes a new methodology to improve the [[ accuracy ]] of a << term aggregation system >> using each author 's text as a coherent corpus ."}
+{"label": "COMPARE", "text": "The combination of these two strategies results in a << robust estimation procedure >> that provides a significant speed-up over existing [[ RANSAC techniques ]] , while requiring no prior information to guide the sampling process ."}

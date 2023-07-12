@@ -6,9 +6,18 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 # import logging
 import config as cf
+from config import StereoType
 # from progressbar import *
 from tqdm import tqdm
 from collections import defaultdict, Counter
+import re
+
+import nltk
+from nltk.corpus import wordnet
+nltk.download('averaged_perceptron_tagger')
+nltk.download('wordnet')
+nltk.download('words')
+nltk.download('omw-1.4')
 
 import random
 import math
@@ -21,12 +30,13 @@ from transformers import RobertaTokenizerFast
 from dataclasses import dataclass, field
 
 
+
 @dataclass
 class Example:
     text: str
     label: str
-    fully_counterfactual_text: list[str] = field(default_factory=list)
-    partial_counterfactual_text: list[str] = field(default_factory=list)
+    fully_counterfactual_text: str = ""
+    partial_counterfactual_text: str = ""
 
 
 class TextDataset():
@@ -86,9 +96,6 @@ class TextDataset():
             example.text = [word.strip()
                             for word in example.text if len(word.strip()) > 0]
             example.text = ' '.join(example.text)
-            for j in range(len(example.text)):
-                example.fully_counterfactual_text.append(cf.Mask_Token)
-                example.partial_counterfactual_text.append(cf.Mask_Token)
 
         cf.XMaxLen = max(examples,key = lambda x:len(x.text))
         cf.XMaxLen = len(cf.XMaxLen.text)
@@ -98,31 +105,34 @@ class TextDataset():
         self.test_examples = test_examples
 
     # initialize
-    def Public(self, train):
-        model = train.model_x
-        stereotype_words = generate_stereotype_words(self.train_examples, model, cf.LOAD_STEREO_TYPE_WORDS_FROM_FILE)
+    def Public(self, train=None, n_gram = 1):
+        if train is not None:
+            model = train.model_x
+        else:
+            model = None
+        
+        stereotype_words = generate_stereotype_words(self.train_examples, model, cf.LOAD_STEREO_TYPE_WORDS_FROM_FILE, n_gram = n_gram)
         for i, example in enumerate(self.train_examples + self.dev_examples + self.test_examples):
-            example.fully_counterfactual_text = []
-            example.partial_counterfactual_text = []
-            text = example.text.split(' ')
-            for j in range(len(text)):
-                word = text[j].strip()
-                example.fully_counterfactual_text.append(cf.Mask_Token)
-                if word in stereotype_words:
-                    example.partial_counterfactual_text.append(word)
-                else:
-                    example.partial_counterfactual_text.append(cf.Mask_Token)
+            # example.fully_counterfactual_text = []
+            # example.partial_counterfactual_text = []
+            len_text = len(example.text.split())
+            example.fully_counterfactual_text = ' '.join([cf.Mask_Token] * len_text)
+            partial_counterfactual_text = [cf.Mask_Token] * len_text
+            for index, ngram in enumerate(split_into_ngrams(example.text, n_gram)):
+                if ngram in stereotype_words:
+                    partial_counterfactual_text[index:index+n_gram] = ngram.split()
+            example.partial_counterfactual_text = ' '.join(partial_counterfactual_text)
 
-    
+        print('hello world')
 
     def Read_Data(self, init_train=False, train=None):
 
         if init_train == False:
             # output dataset's name
             print('Dataset:{}'.format(self.dataset_name))
-            train_datapath = './data/' + self.dataset_name + '.train.jsonl'
-            dev_datapath = './data/' + self.dataset_name + '.dev.jsonl'
-            test_datapath = './data/' + self.dataset_name + '.test.jsonl'
+            train_datapath = cf.DATA_PATH + self.dataset_name + '.train.jsonl'
+            dev_datapath = cf.DATA_PATH + self.dataset_name + '.dev.jsonl'
+            test_datapath = cf.DATA_PATH + self.dataset_name + '.test.jsonl'
 
             train_examples = self.Read_from_Datapath(train_datapath)
             dev_examples = self.Read_from_Datapath(dev_datapath)
@@ -196,14 +206,14 @@ class TextDataset():
             print(']')
 
         else:
-            self.Public(train)
+            self.Public(train, n_gram=cf.N_GRAM)
 
             # MASK ratio
             examples = self.train_examples + self.dev_examples + self.test_examples
             Ratio = 0.0
             for example in examples:
                 up = len(
-                    [word for word in example.partial_counterfactual_text if word == cf.Mask_Token])
+                    [word for word in example.partial_counterfactual_text.split() if word == cf.Mask_Token])
                 down = len(example.text)
                 Ratio += up * 1.0 / down
             Ratio = Ratio * 1.0 / len(examples)
@@ -225,8 +235,8 @@ class TrainDataset(Dataset):
         x = self.examples[index].text
         fcx = self.examples[index].fully_counterfactual_text
         pcx = self.examples[index].partial_counterfactual_text
-        fcx = " ".join(fcx)
-        pcx = " ".join(pcx)
+        # fcx = " ".join(fcx)
+        # pcx = " ".join(pcx)
 
         y = self.examples[index].label
         y_tensor = self.Generate_Y_Tensor(y)
@@ -241,22 +251,30 @@ class TrainDataset(Dataset):
         return tensor
 
 
-def generate_stereotype_words(train_examples=None,model=None, load_from_file=False):
-
-
-    if cf.Stereotype == 'Imbword':
-        return get_positive_shap_words(train_examples, model, load_from_file)
-    if cf.Stereotype == 'Keyword':
-        return get_low_entropy_words(train_examples, load_from_file)
-    if cf.Stereotype == 'Normal':
+def generate_stereotype_words(train_examples,model=None, load_from_file=False,n_gram = 1):
+    if cf.Stereotype == StereoType.Noun:
+        words = {word for example in train_examples for word in example.text.split()}
+        nouns = set(nltk.corpus.words.words())
+        # Filter for nouns
+        nouns = [word for word in nouns if wordnet.synsets(word) and wordnet.synsets(word)[0].pos() == 'n']
+        return set(nouns) & words
+    if cf.Stereotype == StereoType.RandomMask:
+        words = {word for example in train_examples for word in example.text.split()}
+        words = random.sample(sorted(words), int(cf.RANDOM_MASK_RATE * len(words)))
+        return set(words)
+    if cf.Stereotype == StereoType.Imbword:
+        return get_positive_shap_words(train_examples, model, load_from_file, n_gram=n_gram)
+    if cf.Stereotype == StereoType.Keyword:
+        return get_low_entropy_words(train_examples, load_from_file, n_gram=n_gram)
+    if cf.Stereotype == StereoType.Normal:
         # The normal case is just the getting the positive shap words and use them as candidates to find low entropy words among them
         # The assumption is that those words are bias because they have high contribution to the model and having low entropy
-        stereotype_words = get_low_entropy_words(train_examples) & get_positive_shap_words(train_examples)
-        np.save(cf.Base_Model+cf.Dataset_Name+cf.Stereotype+"low_entropy_positive_shap.npy",list(stereotype_words))
+        stereotype_words = get_low_entropy_words(train_examples, load_from_file, n_gram=n_gram) & get_positive_shap_words(train_examples, model, load_from_file, n_gram=n_gram)
+        np.save(cf.Base_Model+cf.Dataset_Name+cf.Stereotype.name+"low_entropy_positive_shap.npy",list(stereotype_words))
         return stereotype_words
-    
-def get_low_entropy_words(train_examples,load_from_file=False):
-    key_word_file_path = cf.Base_Model+cf.Dataset_Name+cf.Stereotype+"low_entropy.npy"
+
+def get_low_entropy_words(train_examples,load_from_file=False, n_gram = 1):
+    key_word_file_path = cf.Base_Model+cf.Dataset_Name+cf.Stereotype.name+"low_entropy.npy"
     if load_from_file:
         return np.load(key_word_file_path, allow_pickle=True)
     classes = set(example.label for example in train_examples)
@@ -264,7 +282,7 @@ def get_low_entropy_words(train_examples,load_from_file=False):
     keyword_entropy = {}
     key_words_class_count = defaultdict(lambda: defaultdict(int))
     for example in train_examples:
-        for word in example.text.split(' '):
+        for word in split_into_ngrams(example.text, n=n_gram):
             key_words_class_count[word][example.label] += 1
 
     for word in key_words_class_count.keys():
@@ -274,16 +292,18 @@ def get_low_entropy_words(train_examples,load_from_file=False):
         for _class in classes:
             word_class_percentage = word_class_count.get(_class, 0) / word_sum
             entropy -= word_class_percentage * np.log(word_class_percentage + 1e-8)
-        keyword_entropy[word] = entropy
-    sorted_keyword_entropy = sorted(keyword_entropy.items(), key=lambda x: x[1])
-    stereotype_words = [word for word, _ in sorted_keyword_entropy[:int(cf.Alpha*len(sorted_keyword_entropy))+1]]
 
+        keyword_entropy[word] = entropy, word_sum
+    sorted_keyword_entropy = sorted(keyword_entropy.items(), key=lambda x: x[1][0])
+    sorted_keyword_entropy = [item for item in sorted_keyword_entropy if item[1][1] >= cf.MIN_FREQUENCY and item[1][0] < cf.ENTROPY_THRESHOLD]
+
+    stereotype_words = [word for word, _ in sorted_keyword_entropy[:int(cf.Alpha*len(sorted_keyword_entropy))+1]]
     print('stereotype_words lengths: ', len(stereotype_words))
     np.save(key_word_file_path, stereotype_words)
     return set(stereotype_words)
 
-def get_positive_shap_words(train_examples = None, model = None,load_from_file=False):
-    positive_path_file_path = cf.Base_Model+cf.Dataset_Name+cf.Stereotype+"positive_shap.npy"
+def get_positive_shap_words(train_examples = None, model = None,load_from_file=False, n_gram = 1):
+    positive_path_file_path = cf.Base_Model+cf.Dataset_Name+cf.Stereotype.name+"positive_shap.npy"
     if load_from_file:
         return np.load(positive_path_file_path)
     model.cuda()
@@ -291,23 +311,120 @@ def get_positive_shap_words(train_examples = None, model = None,load_from_file=F
     train_dataset = TrainDataset(train_examples)
     train_loader = DataLoader(train_dataset, batch_size=cf.Train_Batch_Size, shuffle=False)
     important_words = []
-    if cf.Base_Model == 'RoBERTa' or cf.Base_Model == 'GPT2':
-        roberta_tokenizer = RobertaTokenizerFast.from_pretrained(
-                        'roberta-base')
-        masker = shap.maskers.Text(roberta_tokenizer)
-    elif cf.Base_Model == 'TextCNN' or cf.Base_Model == 'TextRCNN':
-        masker = shap.maskers.Text(r"\W")
-        cf.Explain = True
+
+    masker_tokenizers = get_masker_or_tokenizer(n_gram)
+    for masker_tokenizer in masker_tokenizers:
+        important_words += get_positive_shapwords_with_masker(train_loader, model, masker_tokenizer)
+    np.save(positive_path_file_path, important_words)
+    return set(important_words)
+
+def get_positive_shapwords_with_masker(train_loader, model, masker_tokenizer):
     explainer = shap.Explainer(
-                    model, masker, output_names=cf.YList, seed=1)
+                    model, masker_tokenizer,  seed=1)
     model.eval()
+    high_shap_words = []
     for batch_idx, (x, _, _, y, _) in enumerate(train_loader):
         print(batch_idx)
         shap_values = explainer(x)
         for i in range(len(x)):
             shap_value = cf.normalization(
                             shap_values.values[i][:, int(y[i])])
-            important_words += list(set([shap_values.data[i][idx].strip() for idx in range(len(shap_value))
+            high_shap_words += list(set([shap_values.data[i][idx].strip() for idx in range(len(shap_value))
                                                     if shap_value[idx] > 0 and len(shap_values.data[i][idx].strip()) > 0]))
-    np.save(positive_path_file_path, important_words)
-    return set(important_words)
+    return high_shap_words
+
+def split_into_ngrams(text, n):
+    # Split the text into words
+    words = text.split()
+
+    # Create a list to store the n-grams
+    ngrams = []
+
+    # Loop through the words and create n-grams
+    for i in range(len(words) - n + 1):
+        ngram = ' '.join(words[i:i+n])
+        ngrams.append(ngram)
+
+    return ngrams
+
+def get_masker_or_tokenizer(ngram):
+    if ngram == 1:
+        if cf.Base_Model == 'RoBERTa' or cf.Base_Model == 'GPT2':
+            roberta_tokenizer = RobertaTokenizerFast.from_pretrained(
+                            'roberta-base')
+            masker = shap.maskers.Text(roberta_tokenizer)
+        elif cf.Base_Model == 'TextCNN' or cf.Base_Model == 'TextRCNN':
+            masker = shap.maskers.Text(r"\W")
+            cf.Explain = True
+        else:
+            raise NotImplementedError
+        return [masker]
+    elif ngram == 2:
+        return [shap.maskers.Text(lambda s,return_offsets_mapping=True: skip_n_bigram_tokenizer(s,return_offsets_mapping,0), mask_token =cf.Mask_Token),
+                shap.maskers.Text(lambda s,return_offsets_mapping=True: skip_n_bigram_tokenizer(s,return_offsets_mapping,1), mask_token =cf.Mask_Token)]
+    raise NotImplementedError
+
+
+def skip_n_bigram_tokenizer(s, return_offsets_mapping=True, n=0):
+    """ Custom non-overlapping bigram tokenizers that treat the first n words as a single token, conform to a subset of the transformers API.
+    """
+    if not s.strip():
+        return {"input_ids": [], "offset_mapping": []}
+    pos = 0
+    offset_ranges = []
+    input_ids = []
+    words = re.split(r'\s', s)  # extract words
+
+    # if n > 0 and n words exist, group them as a single token
+    if n > 0 and len(words) >= n:
+        first_n_words = " ".join(words[:n])
+        start = pos
+        end = pos + len(first_n_words)
+        offset_ranges.append((start, end))
+        input_ids.append(first_n_words)
+        pos = end + 1  # increment the position by the length of the first n words plus the following space
+
+    # continue with bigram tokenization
+    for i in range(n, len(words) - 1, 2):  # start from n to skip the first n words
+        if i + 1 < len(words):  # make sure i+1 is within index range
+            bigram = words[i] + " " + words[i+1]
+            start = s.find(bigram, pos)
+            if start != -1:  # find returns -1 if not found
+                end = start + len(bigram)
+                offset_ranges.append((start, end))
+                input_ids.append(bigram)
+                pos = end + 1  # increment the position by the length of the bigram plus the following space
+
+    # handle the case where there is a single word left
+    if n < len(words) and (len(words) - n) % 2 != 0:
+        start = s.find(words[-1], pos)
+        if start != -1:
+            end = start + len(words[-1])
+            offset_ranges.append((start, end))
+            input_ids.append(words[-1])
+
+    out = {"input_ids": input_ids}
+    if return_offsets_mapping:
+        out["offset_mapping"] = offset_ranges
+    return out
+
+
+def custom_tokenizer(s, return_offsets_mapping=True):
+        """ Custom tokenizers conform to a subset of the transformers API.
+        """
+        pos = 0
+        offset_ranges = []
+        input_ids = []
+        for m in re.finditer(r"\W", s):
+            start, end = m.span(0)
+            offset_ranges.append((pos, start))
+            input_ids.append(s[pos:start])
+            pos = end
+        if pos != len(s):
+            offset_ranges.append((pos, len(s)))
+            input_ids.append(s[pos:])
+        out = {}
+        out["input_ids"] = input_ids
+        if return_offsets_mapping:
+            out["offset_mapping"] = offset_ranges
+        return out

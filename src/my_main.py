@@ -54,6 +54,10 @@ def MAIN():
         elif cf.Base_Model == 'RoBERTa':
             model_x = model.RoBERTa()
             model_s = model.RoBERTa()
+        else:
+            warnings.warn(f'No such model: {cf.Base_Model}!')
+            sys.exit(0)
+        
 
         if cf.Use_GPU == True:
             model_x = model_x.cuda()
@@ -73,10 +77,14 @@ def MAIN():
         if not cf.Pretrained:                        
             f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness = tr.Init_Train(train_loader, dev_loader, test_loader)                                      
         else:                    
-            tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype + 'xinit.pt'))           
+            try:
+                tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + 'xinit.pt'))
+            except:
+                # quick hack to load initial model remember to fix this!
+                tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + "Normal" + 'xinit.pt'))         
             f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness = 0,0,0
         # mask the stereotype words    
-        TextDataset.Word_Detection(train_loader, tr)
+        TextDataset.Read_Data(True,tr)
         # prepare dataloader for biased training
         train_dataset = data_process.TrainDataset(TextDataset.train_examples)
         dev_dataset = data_process.TrainDataset(TextDataset.dev_examples)
@@ -88,7 +96,7 @@ def MAIN():
         # biased training and debiased prediction
         test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness = tr.Train(train_loader, dev_loader, test_loader, i+100)
 
-        f = open(cf.Base_Model + cf.Dataset_Name + cf.Stereotype + '.txt', 'a')
+        f = open(cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + '.txt', 'a')
         f.write(cf.Base_Model)
         f.write('\n')
         f.write(cf.Fusion)

@@ -73,12 +73,12 @@ class Train:
     
                 dev_bacc = cf.Get_Report(true_labels, baseline_labels)['acc']
                 dev_bmaf1 = cf.Get_Report(true_labels, baseline_labels)['macro_f1']
-                
+                init_factual_keyword_fairness = 999999
                 if dev_bmaf1 > best_dev_bmaf1:
                     true_labels, factual_outputs = [], []
                     best_dev_bmaf1 = dev_bmaf1
                     
-                    torch.save(self.model_x.state_dict(),cf.Base_Model + cf.Dataset_Name + cf.Stereotype + 'xinit.pt')
+                    torch.save(self.model_x.state_dict(),cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + 'xinit.pt')
                     
                     for batch_idx, (x, fcx, pcx, y, y_tensor) in enumerate(test_loader):
                         true_labels.extend(y_tensor.cpu().data.numpy())
@@ -176,8 +176,8 @@ class Train:
             test_acc, test_bacc, test_maf1, test_bmaf1, dev_fmaf1, test_dev_maf1 = self.Evaluate(dev_loader, test_loader, i + 1)
             factual_keyword_fairness, counterfactual_keyword_fairness = self.Fairness(test_loader)
             if f_dev_fmaf1 <= dev_fmaf1:
-                torch.save(self.model_x.state_dict(),cf.Base_Model + cf.Dataset_Name + cf.Stereotype + 'xdebias.pt')
-                torch.save(self.model_s.state_dict(),cf.Base_Model + cf.Dataset_Name + cf.Stereotype + 'sdebias.pt')
+                torch.save(self.model_x.state_dict(),cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + 'xdebias.pt')
+                torch.save(self.model_s.state_dict(),cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + 'sdebias.pt')
                 f_dev_fmaf1 = dev_fmaf1
                 f_test_maf1 = test_maf1
                 f_test_bmaf1 = test_bmaf1

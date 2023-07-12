@@ -11,3 +11,16 @@ Final F1 in 1-Rounds= 0.42045622133940075
 Final BaseF1 in 1-Rounds= 0.42045622133940075
 Final Fair in 1-Rounds= 41.83966180168715
 Final BaseFair in 1-Rounds= 41.873051588914315
+TextCNN
+SUM_Tanh
+ARC
+0.15
+Init Acc in 1-Rounds= 0
+Init F1 in 1-Rounds= 0
+Init Fairness in 1-Rounds= 999999
+Final Acc in 1-Rounds= 0.0
+Final BaseAcc in 1-Rounds= 0.0
+Final F1 in 1-Rounds= 0.0
+Final BaseF1 in 1-Rounds= 0.0
+Final Fair in 1-Rounds= 42.90539073512754
+Final BaseFair in 1-Rounds= 42.90539073512754

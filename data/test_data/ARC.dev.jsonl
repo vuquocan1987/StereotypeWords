@@ -1,0 +1,6 @@
+{"label": "Background", "text": "Typical examples are Bulgarian ( Simov et al. , 2005 ; Simov and Osenova , 2003 ) , Chinese ( Chen et al. , 2003 ) , Danish ( Kromann , 2003 ) , and Swedish ( Nilsson et al. , 2005 ) ."}
+{"label": "CompareOrContrast", "text": "This appeared to solve the problem , and the results presented later for the average degree of generalisation do not show an over-generalisation compared with those given in Li and Abe ( 1998 ) ."}
+{"label": "Future", "text": "Secondly , as ( Blunsom et al. , 2008 ) show , marginalizing out the different segmentations during decoding leads to improved performance ."}
+{"label": "Uses", "text": "Our knowledge extractors rely extensively on MetaMap ( Aronson 2001 ) , a system for identifying segments of text that correspond to concepts in the UMLS Metathesaurus ."}
+{"label": "Motivation", "text": "Inspired by ( Blunsom et al. , 2009 ) and ( Cohn and Blunsom , 2009 ) , we define P ( str | frag ) as follows : where csw is the number of words in the source string ."}
+{"label": "Extends", "text": "This section , which elaborates on preliminary results reported in Demner-Fushman and Lin ( 2005 ) , describes extraction algorithms for population , problems , interventions , outcomes , and the strength of evidence ."}
