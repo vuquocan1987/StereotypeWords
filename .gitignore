@@ -7,8 +7,7 @@ __pycache__/
 # cache
 src/.vector_cache
 
-# pickle file
-*.pickle
+
 
 # C extensions
 *.so
@@ -170,3 +169,4 @@ cython_debug/
 /*.npy
 /*.pt
 /*.txt
+/result

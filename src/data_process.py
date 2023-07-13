@@ -270,11 +270,11 @@ def generate_stereotype_words(train_examples,model=None, load_from_file=False,n_
         # The normal case is just the getting the positive shap words and use them as candidates to find low entropy words among them
         # The assumption is that those words are bias because they have high contribution to the model and having low entropy
         stereotype_words = get_low_entropy_words(train_examples, load_from_file, n_gram=n_gram) & get_positive_shap_words(train_examples, model, load_from_file, n_gram=n_gram)
-        np.save(cf.Base_Model+cf.Dataset_Name+cf.Stereotype.name+"low_entropy_positive_shap.npy",list(stereotype_words))
+        np.save(cf.get_file_prefix()+"low_entropy_positive_shap.npy",list(stereotype_words))
         return stereotype_words
 
 def get_low_entropy_words(train_examples,load_from_file=False, n_gram = 1):
-    key_word_file_path = cf.Base_Model+cf.Dataset_Name+cf.Stereotype.name+"low_entropy.npy"
+    key_word_file_path = cf.get_file_prefix()+"low_entropy.npy"
     if load_from_file:
         return np.load(key_word_file_path, allow_pickle=True)
     classes = set(example.label for example in train_examples)
@@ -303,7 +303,7 @@ def get_low_entropy_words(train_examples,load_from_file=False, n_gram = 1):
     return set(stereotype_words)
 
 def get_positive_shap_words(train_examples = None, model = None,load_from_file=False, n_gram = 1):
-    positive_path_file_path = cf.Base_Model+cf.Dataset_Name+cf.Stereotype.name+"positive_shap.npy"
+    positive_path_file_path = cf.get_file_prefix()+"positive_shap.npy"
     if load_from_file:
         return np.load(positive_path_file_path)
     model.cuda()
@@ -350,9 +350,10 @@ def split_into_ngrams(text, n):
 def get_masker_or_tokenizer(ngram):
     if ngram == 1:
         if cf.Base_Model == 'RoBERTa' or cf.Base_Model == 'GPT2':
-            roberta_tokenizer = RobertaTokenizerFast.from_pretrained(
-                            'roberta-base')
-            masker = shap.maskers.Text(roberta_tokenizer)
+            # roberta_tokenizer = RobertaTokenizerFast.from_pretrained(
+            #                 'roberta-base')
+            # masker = shap.maskers.Text(roberta_tokenizer)
+            masker = shap.maskers.Text(r"\W")
         elif cf.Base_Model == 'TextCNN' or cf.Base_Model == 'TextRCNN':
             masker = shap.maskers.Text(r"\W")
             cf.Explain = True

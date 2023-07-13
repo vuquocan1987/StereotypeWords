@@ -58,7 +58,7 @@ def MAIN():
     tr = model.Train(model_x, model_s)
     tr.stage = 'Init'
     try:
-        tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + 'xinit.pt'))
+        tr.model_x.load_state_dict(torch.load(cf.get_file_prefix() + 'xinit.pt'))
     except:
         # quick hack to load initial model remember to fix this!
         tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + "Normal" + 'xinit.pt'))
@@ -83,8 +83,8 @@ def MAIN():
     
     tr = model.Train(model_x, model_s)
     tr.stage = 'Train'
-    tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + 'xdebias.pt'))
-    tr.model_s.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + 'sdebias.pt'))
+    tr.model_x.load_state_dict(torch.load(cf.get_file_prefix() + 'xdebias.pt'))
+    tr.model_s.load_state_dict(torch.load(cf.get_file_prefix() + 'sdebias.pt'))
     train_dataset = data_process.TrainDataset(TextDataset.train_examples)
     dev_dataset = data_process.TrainDataset(TextDataset.dev_examples)
     test_dataset = data_process.TrainDataset(TextDataset.test_examples)

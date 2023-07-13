@@ -8,6 +8,7 @@ import config as cf
 import model, data_process
 import argparse
 
+from pathlib import Path
 
 
 def MAIN():
@@ -78,7 +79,7 @@ def MAIN():
             f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness = tr.Init_Train(train_loader, dev_loader, test_loader)                                      
         else:                    
             try:
-                tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + 'xinit.pt'))
+                tr.model_x.load_state_dict(torch.load(cf.get_file_prefix() + 'xinit.pt'))
             except:
                 # quick hack to load initial model remember to fix this!
                 tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + "Normal" + 'xinit.pt'))         
@@ -96,7 +97,10 @@ def MAIN():
         # biased training and debiased prediction
         test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness = tr.Train(train_loader, dev_loader, test_loader, i+100)
 
-        f = open(cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + '.txt', 'a')
+        write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness, test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness)
+
+def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness, test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness):
+    with open(cf.get_file_prefix() + '.txt', 'a') as f:
         f.write(cf.Base_Model)
         f.write('\n')
         f.write(cf.Fusion)
@@ -122,6 +126,40 @@ def MAIN():
         f.write('Final Fair in {}-Rounds= {}'.format(cf.Round, f_fairness))
         f.write('\n')
         f.write('Final BaseFair in {}-Rounds= {}'.format(cf.Round, f_bfairness))
+        f.write('\n')
+    csv_file_path = Path(cf.get_file_prefix() + '.csv')
+    if not csv_file_path.exists():
+        with open(cf.get_file_prefix() + '.csv', 'w') as f:
+            f.write('Base_Model,Fusion,Dataset_Name,Sigma,Round,InitAcc,InitF1,InitFairness,FinalAcc,FinalBaseAcc,FinalF1,FinalBaseF1,FinalFairness,FinalBaseFairness\n')
+
+    with open(cf.get_file_prefix() + '.csv', 'a') as f:
+        f.write(str(cf.Base_Model))
+        f.write(',')
+        f.write(str(cf.Fusion))
+        f.write(',')
+        f.write(str(cf.Dataset_Name))
+        f.write(',')
+        f.write(str(cf.Sigma))
+        f.write(',')
+        f.write(str(cf.Round))
+        f.write(',')
+        f.write(str(f_test_bacc))
+        f.write(',')
+        f.write(str(f_test_bmaf1))
+        f.write(',')
+        f.write(str(init_factual_keyword_fairness))
+        f.write(',')
+        f.write(str(test_acc))
+        f.write(',')
+        f.write(str(test_bacc))
+        f.write(',')
+        f.write(str(test_maf1))
+        f.write(',')
+        f.write(str(test_bmaf1))
+        f.write(',')
+        f.write(str(f_fairness))
+        f.write(',')
+        f.write(str(f_bfairness))
         f.write('\n')
         
 def main():

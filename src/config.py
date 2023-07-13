@@ -63,6 +63,7 @@ RANDOM_MASK = False
 RANDOM_MASK_RATE = 0.20
 TEST_SAMPLE = ""
 DATA_PATH = './data/'
+get_file_prefix = lambda: f'result/{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}'
 
 # "" mean using real dataset, "Test" mean using test dataset
 Learning_Rate_Init = 5e-4

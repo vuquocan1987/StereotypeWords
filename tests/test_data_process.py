@@ -21,11 +21,11 @@ def model_fixture():
     m = model.TextCNN()
     m = m.cuda()
     cf.Base_Model = 'TextCNN'
-    cf.Stereotype = cf.StereotypeType.Normal
+    cf.Stereotype = cf.StereoType.Normal
     cf.Dataset_Name = 'Amazon'
     cf.embedding, cf.word2id = cf.Pickle_Read('./w2v/glove.300d.en.txt.pickle')
     cf.embedding.weight.requires_grad = False
-    m.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype.name + 'xinit.pt'))
+    m.load_state_dict(torch.load(cf.get_file_prefix() + 'xinit.pt'))
     return m
 
 @pytest.fixture
