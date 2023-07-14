@@ -66,7 +66,7 @@ class Train:
 
                     factual_outputs.extend(self.model_x(x).cpu().data.numpy())
 
-                baseline_labels = torch.max(torch.Tensor(factual_outputs), 1)[1]
+                baseline_labels = torch.max(torch.Tensor(np.array(factual_outputs)), 1)[1]
                 baseline_labels = baseline_labels.numpy()
                 if cf.Use_GPU == True:
                     torch.cuda.empty_cache()
@@ -85,7 +85,7 @@ class Train:
 
                         factual_outputs.extend(self.model_x(x).cpu().data.numpy())
                         
-                    baseline_labels = torch.max(torch.Tensor(factual_outputs), 1)[1]
+                    baseline_labels = torch.max(torch.Tensor(np.array(factual_outputs)), 1)[1]
                     baseline_labels = baseline_labels.numpy()
                     if cf.Use_GPU == True:
                         torch.cuda.empty_cache()

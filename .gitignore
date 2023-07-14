@@ -172,3 +172,4 @@ cython_debug/
 /result
 /w2v/*
 .vector_cache/glove.42B.300d.zip
+.vector_cache/glove.42B.300d.txt

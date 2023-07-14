@@ -9,4 +9,4 @@ word2index = glove.stoi
 embedding_matrix = torch.zeros((len(word2index), 300))
 embedding = nn.Embedding.from_pretrained(glove.vectors, freeze=False)
 
-pickle.dump([embedding, word2index], open('/w2v/glove.300d.en.txt.pickle', 'wb'))
+pickle.dump([embedding, word2index], open('w2v/glove.300d.en.txt.pickle', 'wb'))
