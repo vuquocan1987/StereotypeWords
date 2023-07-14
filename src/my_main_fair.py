@@ -26,7 +26,7 @@ def MAIN():
     cf.Pretrained = True
 
     # prepare a specific dataset
-    TextDataset = data_process.TextDataset(cf.Dataset_Name+cf.TEST_SAMPLE)
+    TextDataset = data_process.TextDataset(cf.Dataset_Name)
     # build model for intialized training
     if cf.Base_Model == 'TextCNN' or cf.Base_Model == 'TextRCNN':
 

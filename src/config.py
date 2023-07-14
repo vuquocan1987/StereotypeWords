@@ -40,7 +40,7 @@ Sigma = 0.3
 
 Dataset_Names = ['News']
 # ['HyperPartisan','Twitter','ARC','SCIERC','Economy','Parties','Amazon']
-Round = 1
+Round = 4
 Fusion = 'SUM_Tanh'
 
 Base_Model = 'TextCNN'
@@ -61,7 +61,7 @@ MIN_FREQUENCY = 2
 ENTROPY_THRESHOLD = .5
 RANDOM_MASK = False
 RANDOM_MASK_RATE = 0.20
-TEST_SAMPLE = ""
+IS_TESTING = False
 DATA_PATH = './data/'
 get_file_prefix = lambda: f'result/{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}'
 

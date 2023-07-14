@@ -6,9 +6,6 @@ import my_main
 @pytest.mark.parametrize("base_model", ["TextRCNN","TextCNN"])
 @pytest.mark.parametrize("stereotype", [cf.StereoType.Normal, cf.StereoType.Keyword, cf.StereoType.Imbword, cf.StereoType.RandomMask, cf.StereoType.Noun])
 def test_smoke(dataset_name,base_model,stereotype):
-    cf.IS_TESTING = True
-    cf.Init_epoch = 1
-    cf.Epoch = 1
     cf.DATA_PATH = './data/test_data/'
     cf.Dataset_Name = dataset_name
     cf.Base_Model = base_model
@@ -21,9 +18,6 @@ def test_smoke(dataset_name,base_model,stereotype):
 @pytest.mark.parametrize("base_model", ["TextRCNN","TextCNN"])
 @pytest.mark.parametrize("stereotype", [cf.StereoType.Normal, cf.StereoType.Keyword, cf.StereoType.Imbword])
 def test_smoke_bigram(dataset_name,base_model,stereotype):
-    cf.IS_TESTING = True
-    cf.Init_epoch = 1
-    cf.Epoch = 1
     cf.DATA_PATH = './data/test_data/'
     cf.Dataset_Name = dataset_name
     cf.Base_Model = base_model
@@ -37,9 +31,6 @@ def test_smoke_bigram(dataset_name,base_model,stereotype):
 @pytest.mark.parametrize("base_model", ["RoBERTa"])
 @pytest.mark.parametrize("stereotype", [cf.StereoType.Normal, cf.StereoType.Keyword, cf.StereoType.Imbword, cf.StereoType.RandomMask, cf.StereoType.Noun])
 def test_smoke_roberta(dataset_name,base_model,stereotype):
-    cf.IS_TESTING = True
-    cf.Init_epoch = 1
-    cf.Epoch = 1
     cf.DATA_PATH = './data/test_data/'
     cf.Dataset_Name = dataset_name
     cf.Base_Model = base_model
@@ -51,9 +42,6 @@ def test_smoke_roberta(dataset_name,base_model,stereotype):
 @pytest.mark.parametrize("base_model", ["RoBERTa"])
 @pytest.mark.parametrize("stereotype", [cf.StereoType.Normal, cf.StereoType.Keyword, cf.StereoType.Imbword])
 def test_smoke_bigram_roberta(dataset_name,base_model,stereotype):
-    cf.IS_TESTING = True
-    cf.Init_epoch = 1
-    cf.Epoch = 1
     cf.DATA_PATH = './data/test_data/'
     cf.Dataset_Name = dataset_name
     cf.Base_Model = base_model

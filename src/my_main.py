@@ -25,7 +25,7 @@ def MAIN():
 
     # multiple rounds experiments
     for i in range(cf.Round):
-        if i > 10:
+        if i > 1:
             cf.Pretrained = True
             
         # random seed setting    
@@ -100,7 +100,7 @@ def MAIN():
         write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness, test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness)
 
 def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness, test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness):
-    with open(cf.get_file_prefix() + '.txt', 'a') as f:
+    with open(cf.get_file_prefix() + "Test" if cf.IS_TESTING else "" +'.txt', 'a') as f:
         f.write(cf.Base_Model)
         f.write('\n')
         f.write(cf.Fusion)
@@ -132,7 +132,7 @@ def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairnes
         with open(cf.get_file_prefix() + '.csv', 'w') as f:
             f.write('Base_Model,Fusion,Dataset_Name,Sigma,Round,InitAcc,InitF1,InitFairness,FinalAcc,FinalBaseAcc,FinalF1,FinalBaseF1,FinalFairness,FinalBaseFairness\n')
 
-    with open(cf.get_file_prefix() + '.csv', 'a') as f:
+    with open(cf.get_file_prefix() + "Test" if cf.IS_TESTING else "" + '.csv', 'a') as f:
         f.write(str(cf.Base_Model))
         f.write(',')
         f.write(str(cf.Fusion))
