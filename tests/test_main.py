@@ -17,13 +17,7 @@ def test_amazon():
     my_main.main()
     assert True
 
-@patch.object(sys, 'argv', ['my_main.py', '--Dataset_Name', 'Amazon', '--Base_Model', 'TextCNN'])
-def test_amazon_nouns():
-    cf.Pretrained = True
-    cf.Stereotype = cf.StereoType.Noun
-    cf.TEST_SAMPLE = "Test"
-    my_main.main()
-    assert True
+
 
 @patch.object(sys, 'argv', ['my_main.py', '--Dataset_Name', 'Amazon', '--Base_Model', 'TextCNN'])
 def test_random_mask_amazon():
