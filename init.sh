@@ -5,3 +5,5 @@ cd StereotypeWords
 conda env create -f textdebias.yaml
 conda activate textdebias
 pytest tests/test_smoke.py
+mkdir w2v
+python3 generatew2v.py
