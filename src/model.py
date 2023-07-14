@@ -36,7 +36,7 @@ class Train:
         optimizer = optim.Adam(self.model_x.parameters(), lr=cf.Learning_Rate_Init)
         criterion = nn.CrossEntropyLoss()
 
-        best_dev_bmaf1 = 0
+        best_dev_bmaf1 = -1
         f_test_bacc = 0
         f_test_bmaf1 = 0
         for i in range(cf.Init_epoch):
