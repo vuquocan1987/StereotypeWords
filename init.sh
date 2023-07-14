@@ -4,6 +4,6 @@ git clone https://github.com/vuquocan1987/StereotypeWords.git
 cd StereotypeWords
 conda env create -f textdebias.yaml
 conda activate textdebias
-pytest tests/test_smoke.py
 mkdir w2v
 python3 generatew2v.py
+pytest tests/test_smoke.py
