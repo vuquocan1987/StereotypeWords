@@ -57,11 +57,11 @@ def MAIN():
 
     tr = model.Train(model_x, model_s)
     tr.stage = 'Init'
-    try:
-        tr.model_x.load_state_dict(torch.load(cf.get_file_prefix() + 'xinit.pt'))
-    except:
+    # try:
+    tr.model_x.load_state_dict(torch.load(cf.get_file_prefix() + 'xinit.pt'))
+    # except:
         # quick hack to load initial model remember to fix this!
-        tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + "Normal" + 'xinit.pt'))
+        # tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + "Normal" + 'xinit.pt'))
     #tr.model_s.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + cf.Stereotype + 'sdebias.pt'))
     train_dataset = data_process.TrainDataset(TextDataset.train_examples)
     test_dataset = data_process.TrainDataset(TextDataset.test_examples)

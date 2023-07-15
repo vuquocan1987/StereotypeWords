@@ -78,7 +78,7 @@ class Train:
                     true_labels, factual_outputs = [], []
                     best_dev_bmaf1 = dev_bmaf1
                     
-                    torch.save(self.model_x.state_dict(),cf.get_file_prefix() + 'xinit.pt')
+                    torch.save(self.model_x.state_dict(),cf.get_init_model_path())
                     
                     for batch_idx, (x, fcx, pcx, y, y_tensor) in enumerate(test_loader):
                         true_labels.extend(y_tensor.cpu().data.numpy())

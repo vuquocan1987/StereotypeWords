@@ -64,6 +64,11 @@ RANDOM_MASK_RATE = 0.20
 IS_TESTING = False
 DATA_PATH = './data/'
 get_file_prefix = lambda: f'result/{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}'
+def get_init_model_path():
+    if IS_TESTING:
+        return f'result/test_result/{Dataset_Name}_{Base_Model}_init.pt'
+    else:
+        return f'result/{Dataset_Name}_{Base_Model}_init.pt'
 
 # "" mean using real dataset, "Test" mean using test dataset
 Learning_Rate_Init = 5e-4

@@ -25,8 +25,8 @@ def MAIN():
 
     # multiple rounds experiments
     for i in range(cf.Round):
-        if i > 1:
-            cf.Pretrained = True
+        # if i > 1:
+        #     cf.Pretrained = True
             
         # random seed setting    
         cf.Seed = i        
@@ -74,16 +74,21 @@ def MAIN():
         test_loader = DataLoader(test_dataset, batch_size=cf.DevTest_Batch_Size, shuffle=cf.DataLoader_Shuffle)
         tr = model.Train(model_x, model_s)
         
-        # check whether pre-trained model exists
-        if not cf.Pretrained:                        
+        f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness = 0,0,0
+        try:
+            tr.model_x.load_state_dict(torch.load(cf.get_init_model_path()))
+        except:
             f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness = tr.Init_Train(train_loader, dev_loader, test_loader)                                      
-        else:                    
-            try:
-                tr.model_x.load_state_dict(torch.load(cf.get_file_prefix() + 'xinit.pt'))
-            except:
+        # check whether pre-trained model exists
+        # if not cf.Pretrained:                        
+        #     f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness = tr.Init_Train(train_loader, dev_loader, test_loader)                                      
+        # else:                    
+        #     # try:
+        #     tr.model_x.load_state_dict(torch.load(cf.get_init_model_path()))
+            # except:
                 # quick hack to load initial model remember to fix this!
-                tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + "Normal" + 'xinit.pt'))         
-            f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness = 0,0,0
+                # tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + "Normal" + 'xinit.pt'))         
+        
         # mask the stereotype words    
         TextDataset.Read_Data(True,tr)
         # prepare dataloader for biased training
