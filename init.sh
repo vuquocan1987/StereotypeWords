@@ -6,7 +6,8 @@ git clone https://github.com/vuquocan1987/StereotypeWords.git
 cd StereotypeWords
 conda env create -f textdebias.yaml
 conda activate textdebias
-pip intsall -r requirements.txt
+git checkout Revamp
+pip install -r requirements.txt
 pip install -e .
 mkdir w2v
 python3 generatew2v.py
