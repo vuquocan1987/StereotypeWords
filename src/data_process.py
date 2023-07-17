@@ -304,8 +304,10 @@ def get_low_entropy_words(train_examples,load_from_file=False, n_gram = 1):
 
 def get_positive_shap_words(train_examples = None, model = None,load_from_file=False, n_gram = 1):
     positive_path_file_path = cf.get_file_prefix()+"positive_shap.npy"
-    if load_from_file:
-        return np.load(positive_path_file_path)
+    if os.path.exists(positive_path_file_path):
+        return np.load(positive_path_file_path, allow_pickle=True)
+    # if load_from_file:
+    #     return np.load(positive_path_file_path)
     model.cuda()
     model.eval()
     train_dataset = TrainDataset(train_examples)

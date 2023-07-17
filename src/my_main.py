@@ -105,6 +105,7 @@ def MAIN():
         write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness, test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness)
 
 def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness, test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness):
+    
     with open(cf.get_file_prefix() + "Test" if cf.IS_TESTING else "" +'.txt', 'a') as f:
         f.write(cf.Base_Model)
         f.write('\n')
@@ -132,12 +133,16 @@ def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairnes
         f.write('\n')
         f.write('Final BaseFair in {}-Rounds= {}'.format(cf.Round, f_bfairness))
         f.write('\n')
-    csv_file_path = Path(cf.get_file_prefix() + '.csv')
+    csv_file_path = Path("result/" + "Test/" if cf.IS_TESTING else "" +'Result.txt')
+    if cf.IS_TESTING:
+        csv_file_path = Path("result/csv/Tests/Result.csv")
+    else:
+        csv_file_path = Path("result/csv/Result.csv")
     if not csv_file_path.exists():
-        with open(cf.get_file_prefix() + '.csv', 'w') as f:
+        with open(csv_file_path, 'w') as f:
             f.write('Base_Model,Fusion,Dataset_Name,Sigma,Round,InitAcc,InitF1,InitFairness,FinalAcc,FinalBaseAcc,FinalF1,FinalBaseF1,FinalFairness,FinalBaseFairness\n')
 
-    with open(cf.get_file_prefix() + "Test" if cf.IS_TESTING else "" + '.csv', 'a') as f:
+    with open(csv_file_path, 'a') as f:
         f.write(str(cf.Base_Model))
         f.write(',')
         f.write(str(cf.Fusion))
