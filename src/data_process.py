@@ -11,7 +11,8 @@ from config import StereoType
 from tqdm import tqdm
 from collections import defaultdict, Counter
 import re
-
+import spacy
+from idiomatch import Idiomatcher
 import nltk
 from nltk.corpus import wordnet
 nltk.download('averaged_perceptron_tagger')
@@ -104,8 +105,11 @@ class TextDataset():
         self.dev_examples = dev_examples
         self.test_examples = test_examples
 
-    # initialize
+    # initialize dataset i.e. masking words in the text
     def Public(self, train=None, n_gram = 1):
+        if cf.Stereotype == StereoType.Idiom:
+            self.mask_idiom()
+            return
         if train is not None:
             model = train.model_x
         else:
@@ -122,9 +126,18 @@ class TextDataset():
                 if ngram in stereotype_words:
                     partial_counterfactual_text[index:index+n_gram] = ngram.split()
             example.partial_counterfactual_text = ' '.join(partial_counterfactual_text)
-
-        print('hello world')
-
+    def mask_idiom(self):
+        nlp = spacy.load('en_core_web_sm')
+        idiomatcher = Idiomatcher.from_pretrained(nlp)
+        for i, example in enumerate(self.train_examples + self.dev_examples + self.test_examples):
+            len_text = len(example.text.split())
+            example.fully_counterfactual_text = ' '.join([cf.Mask_Token] * len_text)
+            partial_counterfactual_text = [cf.Mask_Token] * len_text
+            doc = nlp(example.text)
+            for idiom in idiomatcher.identify(doc):
+                partial_counterfactual_text[idiom['meta'][1]:idiom['meta'][2]] = idiom['span'].split()
+            example.partial_counterfactual_text = ' '.join(partial_counterfactual_text)
+            
     def Read_Data(self, init_train=False, train=None):
 
         if init_train == False:
