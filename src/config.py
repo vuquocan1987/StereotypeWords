@@ -46,7 +46,7 @@ Fusion = 'SUM_Tanh'
 Base_Model = 'TextCNN'
 # TextCNN RoBERTa TextRCNN
 
-StereoType = Enum('StereoType', ['Keyword', 'Imbword', 'Normal', 'RandomMask', 'Noun'])
+StereoType = Enum('StereoType', ['Keyword', 'Imbword', 'Normal', 'RandomMask', 'Noun', 'Idiom'])
 Stereotype = StereoType.Normal
 
 # 'Keyword' 'Imbword' 'Normal' 'RandomMask' 'Noun'
@@ -64,6 +64,11 @@ RANDOM_MASK_RATE = 0.20
 IS_TESTING = False
 DATA_PATH = './data/'
 get_file_prefix = lambda: f'result/artifacts/{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}'
+def get_file_prefix():
+    if IS_TESTING:
+        return f'result/artifacts/testing/{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}'
+    else:
+        return f'result/artifacts/{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}'
 def get_init_model_path():
     if IS_TESTING:
         return f'result/test_result/{Dataset_Name}_{Base_Model}_init.pt'

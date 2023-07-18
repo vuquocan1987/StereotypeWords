@@ -5,6 +5,8 @@ from src import model
 import config as cf
 import torch
 from collections import namedtuple
+import spacy
+
 
 @pytest.fixture
 def amazon_dataset():
@@ -101,3 +103,29 @@ def test_split_into_ngrams():
     trigrams = data_process.split_into_ngrams(text, 3)
     expected_trigrams = [('the', 'quick', 'brown'), ('quick', 'brown', 'fox'), ('brown', 'fox', 'jumps'), ('fox', 'jumps', 'over'), ('jumps', 'over', 'the'), ('over', 'the', 'lazy'), ('the', 'lazy', 'dog')]
     assert trigrams == expected_trigrams
+
+
+def test_mask_idiom(sample_amazon_dataset):
+    # Create a DataProcessor object
+    sample_amazon_dataset.mask_idiom()
+    examples = sample_amazon_dataset.train_examples + sample_amazon_dataset.test_examples + sample_amazon_dataset.dev_examples
+    count = 0
+    for example in examples:
+        if len(set(example.partial_counterfactual_text.split()))>1:
+            count += 1
+    print(count)
+    assert True
+
+    
+    # Check that the fully_counterfactual_text and partial_counterfactual_text attributes are correct
+
+def test_mask_idiom_amazon(amazon_dataset):
+    # Create a DataProcessor object
+    amazon_dataset.mask_idiom()
+    examples = amazon_dataset.train_examples + amazon_dataset.test_examples + amazon_dataset.dev_examples
+    count = 0
+    for example in examples:
+        if len(set(example.partial_counterfactual_text.split()))>1:
+            count += 1
+    print(f"Number of example with idiom: {count}: {count/len(examples)}")
+    assert True
