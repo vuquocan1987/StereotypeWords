@@ -114,6 +114,7 @@ def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairnes
         f.write(cf.Dataset_Name)
         f.write('\n')
         f.write(str(cf.Sigma))
+        f.write(str(cf.Stereotype.name))
         f.write('\n')
         f.write('Init Acc in {}-Rounds= {}'.format(cf.Round, f_test_bacc))
         f.write('\n')
@@ -140,10 +141,12 @@ def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairnes
         csv_file_path = Path("result/csv/Result.csv")
     if not csv_file_path.exists():
         with open(csv_file_path, 'w') as f:
-            f.write('Base_Model,Fusion,Dataset_Name,Sigma,Round,InitAcc,InitF1,InitFairness,FinalAcc,FinalBaseAcc,FinalF1,FinalBaseF1,FinalFairness,FinalBaseFairness\n')
+            f.write('Base_Model,StereoType,Fusion,Dataset_Name,Sigma,Round,InitAcc,InitF1,InitFairness,FinalAcc,FinalBaseAcc,FinalF1,FinalBaseF1,FinalFairness,FinalBaseFairness\n')
 
     with open(csv_file_path, 'a') as f:
         f.write(str(cf.Base_Model))
+        f.write(',')
+        f.write(str(cf.Stereotype.name))
         f.write(',')
         f.write(str(cf.Fusion))
         f.write(',')
