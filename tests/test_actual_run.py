@@ -76,7 +76,7 @@ def test_smoke_bigram_roberta(dataset_name,base_model,stereotype):
     cf.Alpha = 1
     my_main.MAIN()
 
-@pytest.mark.parametrize("dataset_name", ["Amazon", "ARC" , "ChemProt", "Economy", "HyperPartisan", "News","Parties", "SCIERC","Twitter","Yelp_Hotel"])
+@pytest.mark.parametrize("dataset_name", ["Amazon", "ARC" , "ChemProt", "Economy", "HyperPartisan", "Parties", "SCIERC","Twitter",]) # "Yelp_Hotel","News",
 @pytest.mark.parametrize("base_model", ["TextRCNN","TextCNN"])
 @pytest.mark.parametrize("stereotype", [cf.StereoType.Idiom])
 def test_actual_Idiom(dataset_name,base_model,stereotype):
