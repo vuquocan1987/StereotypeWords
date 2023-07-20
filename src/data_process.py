@@ -282,11 +282,14 @@ def generate_stereotype_words(train_examples,model=None, load_from_file=False,n_
     if cf.Stereotype == StereoType.Normal:
         # The normal case is just the getting the positive shap words and use them as candidates to find low entropy words among them
         # The assumption is that those words are bias because they have high contribution to the model and having low entropy
-        stereotype_words = get_low_entropy_words(train_examples, load_from_file, n_gram=n_gram) & get_positive_shap_words(train_examples, model, load_from_file, n_gram=n_gram)
+        low_entropy_words = get_low_entropy_words(train_examples, load_from_file, n_gram=n_gram)
+        positive_shap_words = get_positive_shap_words(train_examples, model, load_from_file, n_gram=n_gram)
+        stereotype_words = low_entropy_words & positive_shap_words
         np.save(cf.get_file_prefix()+"low_entropy_positive_shap.npy",list(stereotype_words))
         return stereotype_words
 
 def get_low_entropy_words(train_examples,load_from_file=False, n_gram = 1):
+    load_from_file=False
     key_word_file_path = cf.get_file_prefix()+"low_entropy.npy"
     if load_from_file:
         return np.load(key_word_file_path, allow_pickle=True)
@@ -308,17 +311,17 @@ def get_low_entropy_words(train_examples,load_from_file=False, n_gram = 1):
 
         keyword_entropy[word] = entropy, word_sum
     sorted_keyword_entropy = sorted(keyword_entropy.items(), key=lambda x: x[1][0])
-    sorted_keyword_entropy = [item for item in sorted_keyword_entropy if item[1][1] >= cf.MIN_FREQUENCY and item[1][0] < cf.ENTROPY_THRESHOLD]
 
+    sorted_keyword_entropy = [item for item in sorted_keyword_entropy if item[1][1] >= cf.MIN_FREQUENCY and item[1][0] < cf.ENTROPY_THRESHOLD]
     stereotype_words = [word for word, _ in sorted_keyword_entropy[:int(cf.Alpha*len(sorted_keyword_entropy))+1]]
     print('stereotype_words lengths: ', len(stereotype_words))
     np.save(key_word_file_path, stereotype_words)
     return set(stereotype_words)
 
 def get_positive_shap_words(train_examples = None, model = None,load_from_file=False, n_gram = 1):
-    positive_path_file_path = cf.get_file_prefix()+"positive_shap.npy"
-    if os.path.exists(positive_path_file_path):
-        return np.load(positive_path_file_path, allow_pickle=True)
+    positive_path_file_path = cf.get_file_prefix() +"positive_shap.npy"
+    # if os.path.exists(positive_path_file_path):
+    #     return set(np.load(positive_path_file_path, allow_pickle=True))
     # if load_from_file:
     #     return np.load(positive_path_file_path)
     model.cuda()
