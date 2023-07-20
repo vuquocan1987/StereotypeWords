@@ -23,6 +23,9 @@ def test_smoke_init(dataset_name,base_model,stereotype):
 @pytest.mark.parametrize("base_model", ["TextRCNN","TextCNN"])
 @pytest.mark.parametrize("stereotype", [cf.StereoType.Keyword, cf.StereoType.Imbword, cf.StereoType.RandomMask, cf.StereoType.Noun])
 def test_smoke(dataset_name,base_model,stereotype):
+    # write to file to test order
+    with open("test_smoke.txt", "a") as f:
+        f.write(dataset_name + " " + base_model + " " + stereotype.name + "\n")
     cf.Round = 2
     cf.Pretrained = True
     cf.IS_TESTING = True

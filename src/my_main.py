@@ -134,6 +134,7 @@ def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairnes
         f.write('\n')
         f.write('Final BaseFair in {}-Rounds= {}'.format(cf.Round, f_bfairness))
         f.write('\n')
+        f.write(f"{cf.N_GRAM}\n")
     csv_file_path = Path("result/" + "Test/" if cf.IS_TESTING else "" +'Result.txt')
     if cf.IS_TESTING:
         csv_file_path = Path("result/csv/Tests/Result.csv")
@@ -174,6 +175,7 @@ def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairnes
         f.write(',')
         f.write(str(f_bfairness))
         f.write('\n')
+        f.write(f"{cf.N_GRAM}\n")
         
 def main():
     print('sys.argv={}'.format(sys.argv))
