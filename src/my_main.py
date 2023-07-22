@@ -174,8 +174,7 @@ def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairnes
         f.write(str(f_fairness))
         f.write(',')
         f.write(str(f_bfairness))
-        f.write('\n')
-        f.write(f"{cf.N_GRAM}\n")
+        f.write(f",{cf.N_GRAM}\n")
         
 def main():
     print('sys.argv={}'.format(sys.argv))

@@ -289,10 +289,9 @@ def generate_stereotype_words(train_examples,model=None, load_from_file=False,n_
         return stereotype_words
 
 def get_low_entropy_words(train_examples,load_from_file=False, n_gram = 1):
-    load_from_file=False
     key_word_file_path = cf.get_file_prefix()+"low_entropy.npy"
-    if load_from_file:
-        return np.load(key_word_file_path, allow_pickle=True)
+    if os.path.exists(key_word_file_path):
+        return set(np.load(key_word_file_path, allow_pickle=True))
     classes = set(example.label for example in train_examples)
     
     keyword_entropy = {}
@@ -320,10 +319,10 @@ def get_low_entropy_words(train_examples,load_from_file=False, n_gram = 1):
 
 def get_positive_shap_words(train_examples = None, model = None,load_from_file=False, n_gram = 1):
     positive_path_file_path = cf.get_file_prefix() +"positive_shap.npy"
-    # if os.path.exists(positive_path_file_path):
-    #     return set(np.load(positive_path_file_path, allow_pickle=True))
-    # if load_from_file:
-    #     return np.load(positive_path_file_path)
+    if os.path.exists(positive_path_file_path):
+        return set(np.load(positive_path_file_path, allow_pickle=True))
+    if load_from_file:
+        return np.load(positive_path_file_path)
     model.cuda()
     model.eval()
     train_dataset = TrainDataset(train_examples)

@@ -322,8 +322,7 @@ class Train:
 
 
     def Save(self, dev_maf1, test_acc, test_bacc, test_maf1, test_bmaf1, mark=''):
-        id = '{}-{}-Seed={}-Epoch={} \n'.format(cf.Dataset_Name, self.model_x.name, cf.Seed, mark)
-
+        id = f"{cf.Dataset_Name}-{self.model_x.name}-Seed={cf.Seed}-Epoch={mark}-{cf.Stereotype.name}{cf.N_GRAM}"
         report = '{} | \n'.format(id)
         report += 'dev_counterfactual_maf1={:.2%} | \n'.format(dev_maf1)
         report += 'test_counterfactual_acc={:.2%}| \n'.format(test_bacc)
