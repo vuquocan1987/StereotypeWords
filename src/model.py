@@ -175,7 +175,8 @@ class Train:
             print('training_loss: ', np.mean(Total_loss))
             test_acc, test_bacc, test_maf1, test_bmaf1, dev_fmaf1, test_dev_maf1 = self.Evaluate(dev_loader, test_loader, i + 1)
             factual_keyword_fairness, counterfactual_keyword_fairness = self.Fairness(test_loader)
-            if f_test_maf1 <= test_maf1:
+            write_train_process_to_disk(test_acc, test_bacc, test_maf1, test_bmaf1, dev_fmaf1, test_dev_maf1, factual_keyword_fairness, counterfactual_keyword_fairness, i + 1)
+            if f_dev_fmaf1 <= dev_fmaf1:
                 torch.save(self.model_x.state_dict(),cf.get_file_prefix() + 'xdebias.pt')
                 torch.save(self.model_s.state_dict(),cf.get_file_prefix() + 'sdebias.pt')
                 f_dev_fmaf1 = dev_fmaf1
@@ -336,7 +337,13 @@ class Train:
         print(report)
 
 
-
+def write_train_process_to_disk(test_acc, test_bacc, test_maf1, test_bmaf1, dev_fmaf1, test_dev_maf1, factual_keyword_fairness, counterfactual_keyword_fairness, epoch):
+    path = "result/csv/Train.txt"
+    if not os.path.exists(path):
+        with open(path, 'w') as f:
+            f.write(f"DatasetName,BaseModel,Stereotype,Epoch,TestAcc,TestBAcc,TestmaF1,TestBmaF1,DevmaF1,TestDevmaF1,FactualKeywordFairness,CounterfactualKeywordFairness,Batch,NGRAM\n")
+    with open(path, 'a') as f:
+        f.write(f"{cf.Dataset_Name},{cf.Base_Model},{cf.Stereotype.name},{epoch},{test_acc},{test_bacc},{test_maf1},{test_bmaf1},{dev_fmaf1},{test_dev_maf1},{factual_keyword_fairness},{counterfactual_keyword_fairness},{cf.BATCH},{cf.N_GRAM}\n")
 class TextCNN(nn.Module):
     def __init__(self):
         super(TextCNN, self).__init__()
