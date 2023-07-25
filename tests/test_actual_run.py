@@ -4,9 +4,10 @@ import config as cf
 import my_main
 
 
-@pytest.mark.parametrize("dataset_name", ["Economy","Amazon","Parties","SCIERC", "ARC" , "HyperPartisan", "Twitter"])
+
 @pytest.mark.parametrize("base_model", ["TextRCNN","TextCNN"])
 @pytest.mark.parametrize("stereotype", [cf.StereoType.RandomMask,cf.StereoType.Normal,cf.StereoType.Noun,cf.StereoType.Idiom])    
+@pytest.mark.parametrize("dataset_name", ["Parties","Economy","Amazon","SCIERC", "ARC" , "HyperPartisan", "Twitter"])
 def test_actual_run_everything_light(dataset_name,base_model,stereotype):
     cf.Round=1
     cf.BATCH
@@ -19,9 +20,10 @@ def test_actual_run_everything_light(dataset_name,base_model,stereotype):
 
 
 
-@pytest.mark.parametrize("dataset_name", ["Amazon", "ARC" , "Economy", "HyperPartisan","Parties", "SCIERC","Twitter"])
+
 @pytest.mark.parametrize("base_model", ["TextRCNN","TextCNN"])
 @pytest.mark.parametrize("stereotype", [cf.StereoType.Keyword])
+@pytest.mark.parametrize("dataset_name", ["Parties","Economy","Amazon","SCIERC", "ARC" , "HyperPartisan", "Twitter"])
 def test_actual_bigram(dataset_name,base_model,stereotype):
     cf.Round = 1
     cf.DATA_PATH = './data/'
