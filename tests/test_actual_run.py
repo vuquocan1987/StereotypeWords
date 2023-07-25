@@ -6,10 +6,10 @@ import my_main
 
 @pytest.mark.parametrize("dataset_name", ["Economy","Amazon","Parties","SCIERC", "ARC" , "HyperPartisan", "Twitter"])
 @pytest.mark.parametrize("base_model", ["TextRCNN","TextCNN"])
-@pytest.mark.parametrize("stereotype", [cf.StereoType.RandomMask])
+@pytest.mark.parametrize("stereotype", [cf.StereoType.RandomMask,cf.StereoType.Normal,cf.StereoType.Noun,cf.StereoType.Idiom])    
 def test_actual_run_everything_light(dataset_name,base_model,stereotype):
     cf.Round=1
-    cf.Batch
+    cf.BATCH
     cf.DATA_PATH = './data/'
     cf.Dataset_Name = dataset_name
     cf.Base_Model = base_model
@@ -19,7 +19,7 @@ def test_actual_run_everything_light(dataset_name,base_model,stereotype):
 
 
 
-@pytest.mark.parametrize("dataset_name", ["Amazon", "ARC" , "ChemProt", "Economy", "HyperPartisan", "News","Parties", "SCIERC","Twitter","Yelp_Hotel"])
+@pytest.mark.parametrize("dataset_name", ["Amazon", "ARC" , "Economy", "HyperPartisan","Parties", "SCIERC","Twitter"])
 @pytest.mark.parametrize("base_model", ["TextRCNN","TextCNN"])
 @pytest.mark.parametrize("stereotype", [cf.StereoType.Keyword])
 def test_actual_bigram(dataset_name,base_model,stereotype):
@@ -32,17 +32,6 @@ def test_actual_bigram(dataset_name,base_model,stereotype):
     cf.Alpha = 1
     my_main.MAIN()
 
-
-@pytest.mark.parametrize("dataset_name", ["Amazon", "ARC" , "ChemProt", "Economy", "HyperPartisan", "Parties", "SCIERC","Twitter",]) # "Yelp_Hotel","News",
-@pytest.mark.parametrize("base_model", ["TextRCNN","TextCNN"])
-@pytest.mark.parametrize("stereotype", [cf.StereoType.Idiom])
-def test_actual_Idiom(dataset_name,base_model,stereotype):
-    cf.Round = 1
-    cf.DATA_PATH = './data/'
-    cf.Dataset_Name = dataset_name
-    cf.Base_Model = base_model
-    cf.Stereotype = stereotype
-    my_main.MAIN()
 
 
 

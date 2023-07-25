@@ -12,3 +12,8 @@ pandas
 numpy
 matplotlib
 idiomatch
+bert-serving-server
+bert_serving_client
+pytest
+pytest-xdist
+
