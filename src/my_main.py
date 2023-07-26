@@ -75,6 +75,10 @@ def MAIN():
         tr = model.Train(model_x, model_s)
         
         f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness = 0,0,0
+        if cf.GETTING_INIT:
+            f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness = tr.Init_Train(train_loader, dev_loader, test_loader)
+            write_init_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness)
+            return
         try:
             tr.model_x.load_state_dict(torch.load(cf.get_init_model_path()))
         except:
@@ -82,7 +86,7 @@ def MAIN():
         # check whether pre-trained model exists
         # if not cf.Pretrained:                        
         #     f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness = tr.Init_Train(train_loader, dev_loader, test_loader)                                      
-        # else:                    
+        # else:
         #     # try:
         #     tr.model_x.load_state_dict(torch.load(cf.get_init_model_path()))
             # except:
@@ -103,7 +107,13 @@ def MAIN():
         test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness = tr.Train(train_loader, dev_loader, test_loader, i+100)
 
         write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness, test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness)
-
+def write_init_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness):
+    path = "result/csv/init_results.csv"
+    if not Path(path).exists():
+        with open(path, 'w') as f:
+            f.write('Base_Model,Dataset_Name,Init_ACC,Init_F1,Init_Word_Fairness,InitEpoch\n')
+    with open(path, 'a') as f:
+        f.write(f"{cf.Base_Model},{cf.Dataset_Name},{f_test_bacc},{f_test_bmaf1},{init_factual_keyword_fairness},{cf.Init_epoch}\n")
 def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness, test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness):
     
     with open(cf.get_file_prefix() + "Test" if cf.IS_TESTING else "" +'.txt', 'a') as f:
