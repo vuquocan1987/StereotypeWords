@@ -42,8 +42,9 @@ def test_actual_bigram(dataset_name,base_model,stereotype):
 @pytest.mark.parametrize("stereotype", [cf.StereoType.Normal])
 def test_get_init(dataset_name,base_model,stereotype):
     cf.Round = 1
-    cf.Init_epoch = 1
+    cf.Init_epoch = 20
     cf.DATA_PATH = './data/'
+    cf.GETTING_INIT = True
     cf.Dataset_Name = dataset_name
     cf.Base_Model = base_model
     cf.Stereotype = stereotype

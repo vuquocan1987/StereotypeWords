@@ -33,7 +33,7 @@ def MAIN():
         cf.random_setting(i)
         
         # prepare a specific dataset
-        TextDataset = data_process.TextDataset(cf.Dataset_Name)
+        text_dataset = data_process.TextDataset(cf.Dataset_Name)
         
         # build model for intialized training
         if cf.Base_Model == 'TextCNN' or cf.Base_Model == 'TextRCNN':
@@ -65,9 +65,9 @@ def MAIN():
             model_s = model_s.cuda()
 
         # prepare dataloader for initialized training
-        train_dataset = data_process.TrainDataset(TextDataset.train_examples)
-        dev_dataset = data_process.TrainDataset(TextDataset.dev_examples)
-        test_dataset = data_process.TrainDataset(TextDataset.test_examples)
+        train_dataset = data_process.TrainDataset(text_dataset.train_examples)
+        dev_dataset = data_process.TrainDataset(text_dataset.dev_examples)
+        test_dataset = data_process.TrainDataset(text_dataset.test_examples)
 
         train_loader = DataLoader(train_dataset, batch_size=cf.Train_Batch_Size, shuffle=cf.DataLoader_Shuffle)
         dev_loader = DataLoader(dev_dataset, batch_size=cf.DevTest_Batch_Size, shuffle=cf.DataLoader_Shuffle)
@@ -94,11 +94,11 @@ def MAIN():
                 # tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + "Normal" + 'xinit.pt'))         
         
         # mask the stereotype words    
-        TextDataset.Read_Data(True,tr)
+        text_dataset.prepare_data(True,tr,n_gram=cf.N_Gram)
         # prepare dataloader for biased training
-        train_dataset = data_process.TrainDataset(TextDataset.train_examples)
-        dev_dataset = data_process.TrainDataset(TextDataset.dev_examples)
-        test_dataset = data_process.TrainDataset(TextDataset.test_examples)
+        train_dataset = data_process.TrainDataset(text_dataset.train_examples)
+        dev_dataset = data_process.TrainDataset(text_dataset.dev_examples)
+        test_dataset = data_process.TrainDataset(text_dataset.test_examples)
 
         train_loader = DataLoader(train_dataset, batch_size=cf.Train_Batch_Size, shuffle=cf.DataLoader_Shuffle)
         dev_loader = DataLoader(dev_dataset, batch_size=cf.DevTest_Batch_Size, shuffle=cf.DataLoader_Shuffle)

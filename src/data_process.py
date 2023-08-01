@@ -1,3 +1,4 @@
+from typing import Any
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -28,7 +29,7 @@ import json
 import shap
 import os
 from transformers import RobertaTokenizerFast
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 
 
 
@@ -39,6 +40,14 @@ class Example:
     fully_counterfactual_text: str = ""
     partial_counterfactual_text: str = ""
 
+class ExampleEncoder(json.JSONEncoder):
+    def __init__(self, subset,*args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.subset = subset
+    def default(self, o: Any) -> Any:
+        d = asdict(o)
+        d['subset'] = self.subset
+        return d
 
 class TextDataset():
     def __init__(self, dataset_name):
@@ -47,7 +56,9 @@ class TextDataset():
         self.train_examples = []
         self.dev_examples = []
         self.test_examples = []
-        self.Read_Data()
+        self.masked_ratio = -1.0
+        self.prepare_data()
+        
 
     # read data
     def Read_from_Datapath(self, data_path):
@@ -106,7 +117,7 @@ class TextDataset():
         self.test_examples = test_examples
 
     # initialize dataset i.e. masking words in the text
-    def Public(self, train=None, n_gram = 1):
+    def Public(self, train=None, n_gram=cf.N_GRAM):
         if cf.Stereotype == StereoType.Idiom:
             self.mask_idiom()
             return
@@ -129,7 +140,7 @@ class TextDataset():
     def mask_idiom(self):
         nlp = spacy.load('en_core_web_sm')
         idiomatcher = Idiomatcher.from_pretrained(nlp)
-        for i, example in enumerate(self.train_examples + self.dev_examples + self.test_examples):
+        for i, example in tqdm(enumerate(self.train_examples + self.dev_examples + self.test_examples)):
             len_text = len(example.text.split())
             example.fully_counterfactual_text = ' '.join([cf.Mask_Token] * len_text)
             partial_counterfactual_text = [cf.Mask_Token] * len_text
@@ -138,7 +149,7 @@ class TextDataset():
                 partial_counterfactual_text[idiom['meta'][1]:idiom['meta'][2]] = idiom['span'].split()
             example.partial_counterfactual_text = ' '.join(partial_counterfactual_text)
             
-    def Read_Data(self, init_train=False, train=None):
+    def prepare_data(self, init_train=False, train=None,n_gram = cf.N_GRAM):
 
         if init_train == False:
             # output dataset's name
@@ -219,7 +230,7 @@ class TextDataset():
             print(']')
 
         else:
-            self.Public(train, n_gram=cf.N_GRAM)
+            self.Public(train,n_gram)
 
             # MASK ratio
             examples = self.train_examples + self.dev_examples + self.test_examples
@@ -230,10 +241,35 @@ class TextDataset():
                 down = len(example.text)
                 Ratio += up * 1.0 / down
             Ratio = Ratio * 1.0 / len(examples)
+            self.masked_ratio = Ratio
             print('{:.2%} MASKed ({:.2%} is context)'.format(Ratio, 1.0 - Ratio))
+    def write_masked_data_to_disk(self):
+        #dumping examples to json file, with a new column indicate which set it belongs to
+        path = cf.DATA_PATH + "/masked_dataset/" + self.dataset_name + 'processed.json'
+
+        with open(path, 'w') as f:
+            
+            write_example_data_to_disk(self.train_examples,"train",self.masked_ratio)
+            write_example_data_to_disk(self.dev_examples,"dev",self.masked_ratio)
+            write_example_data_to_disk(self.test_examples,"test",self.masked_ratio)
 
 
 
+def write_example_data_to_disk(examples, subset, masked_ratio):
+    path = cf.DATA_PATH + "/masked_dataset/maksed_data.json"
+    with open(path, 'a') as f:
+        for example in examples:
+            d = asdict(example)
+            d["Dataset"] = cf.Dataset_Name
+            d["Base_Model"] = cf.Base_Model
+            d["Mask_Ratio"] = masked_ratio
+            if cf.N_GRAM == 2:
+                d["Stereo_Type"] = "Bi-gram"
+            else:
+                d["Stereo_Type"] = cf.Stereotype.name
+            d["Subset"] = subset
+            json.dump(d, f)
+            f.write('\n')
 
 class TrainDataset(Dataset):
     def __init__(self, examples):
@@ -359,7 +395,6 @@ def split_into_ngrams(text, n):
     for i in range(len(words) - n + 1):
         ngram = ' '.join(words[i:i+n])
         ngrams.append(ngram)
-
     return ngrams
 
 def get_masker_or_tokenizer(ngram):

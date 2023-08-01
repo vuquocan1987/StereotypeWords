@@ -63,13 +63,15 @@ RANDOM_MASK = False
 RANDOM_MASK_RATE = 0.20
 IS_TESTING = False
 DATA_PATH = './data/'
+ARTIFACT_PATH = 'result/artifacts/'
 BATCH=1
-get_file_prefix = lambda: f'result/artifacts/{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}'
+GETTING_INIT = False
+
 def get_file_prefix():
     if IS_TESTING:
-        return f'result/artifacts/testing/{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}'
+        return f'{ARTIFACT_PATH}testing/{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}'
     else:
-        return f'result/artifacts/{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}'
+        return f'{ARTIFACT_PATH}{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}'
 def get_init_model_path():
     if IS_TESTING:
         return f'result/test_result/{Dataset_Name}_{Base_Model}_init.pt'
