@@ -94,7 +94,7 @@ def MAIN():
                 # tr.model_x.load_state_dict(torch.load(cf.Base_Model + cf.Dataset_Name + "Normal" + 'xinit.pt'))         
         
         # mask the stereotype words    
-        text_dataset.prepare_data(True,tr,n_gram=cf.N_Gram)
+        text_dataset.prepare_data(True,tr,n_gram=cf.N_GRAM)
         # prepare dataloader for biased training
         train_dataset = data_process.TrainDataset(text_dataset.train_examples)
         dev_dataset = data_process.TrainDataset(text_dataset.dev_examples)
@@ -104,17 +104,17 @@ def MAIN():
         dev_loader = DataLoader(dev_dataset, batch_size=cf.DevTest_Batch_Size, shuffle=cf.DataLoader_Shuffle)
         test_loader = DataLoader(test_dataset, batch_size=cf.DevTest_Batch_Size, shuffle=cf.DataLoader_Shuffle)
         # biased training and debiased prediction
-        test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness = tr.Train(train_loader, dev_loader, test_loader, i+100)
+        test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness,f_bias_acc = tr.Train(train_loader, dev_loader, test_loader, i+100)
 
-        write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness, test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness)
+        write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness, test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness,f_bias_acc)
 def write_init_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness):
     path = "result/csv/init_results.csv"
     if not Path(path).exists():
         with open(path, 'w') as f:
-            f.write('Base_Model,Dataset_Name,Init_ACC,Init_F1,Init_Word_Fairness,InitEpoch\n')
+            f.write('Base_Model,Dataset_Name,Init_ACC,Init_F1,Init_Word_Fairness,InitEpoch,Alpha\n')
     with open(path, 'a') as f:
-        f.write(f"{cf.Base_Model},{cf.Dataset_Name},{f_test_bacc},{f_test_bmaf1},{init_factual_keyword_fairness},{cf.Init_epoch}\n")
-def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness, test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness):
+        f.write(f"{cf.Base_Model},{cf.Dataset_Name},{f_test_bacc},{f_test_bmaf1},{init_factual_keyword_fairness},{cf.Init_epoch},{cf.Alpha}\n")
+def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairness, test_acc, test_bacc, test_maf1, test_bmaf1, f_fairness, f_bfairness,f_bias_acc):
     
     with open(cf.get_file_prefix() + "Test" if cf.IS_TESTING else "" +'.txt', 'a') as f:
         f.write(cf.Base_Model)
@@ -144,15 +144,17 @@ def write_result_to_disk(f_test_bacc, f_test_bmaf1, init_factual_keyword_fairnes
         f.write('\n')
         f.write('Final BaseFair in {}-Rounds= {}'.format(cf.Round, f_bfairness))
         f.write('\n')
+        f.write('Final Bias Acc in {}-Rounds= {}'.format(cf.Round, f_bias_acc))
+        f.write('\n')
     if cf.IS_TESTING:
         csv_file_path = Path("result/csv/Tests/Result.csv")
     else:
         csv_file_path = Path("result/csv/Result.csv")
     if not csv_file_path.exists():
         with open(csv_file_path, 'w') as f:
-            f.write('Base_Model,StereoType,Fusion,Dataset_Name,Sigma,Round,InitAcc,InitF1,InitFairness,FinalAcc,FinalBaseAcc,FinalF1,FinalBaseF1,FinalFairness,FinalBaseFairness,NumTrainEpoch,BatchNo\n')
+            f.write('Base_Model,StereoType,Fusion,Dataset_Name,Sigma,Round,InitAcc,InitF1,InitFairness,FinalAcc,FinalBaseAcc,FinalF1,FinalBaseF1,FinalBiasAcc,FinalFairness,FinalBaseFairness,NumTrainEpoch,BatchNo\n')
     with open(csv_file_path, 'a') as f:
-        f.write(f"{cf.Base_Model},{cf.Stereotype.name},{cf.Fusion},{cf.Dataset_Name},{cf.Sigma},{cf.Round},{f_test_bacc},{f_test_bmaf1},{init_factual_keyword_fairness},{test_acc},{test_bacc},{test_maf1},{test_bmaf1},{f_fairness},{f_bfairness},{cf.Epoch},{cf.BATCH}\n")
+        f.write(f"{cf.Base_Model},{cf.Stereotype.name},{cf.Fusion},{cf.Dataset_Name},{cf.Sigma},{cf.Round},{f_test_bacc},{f_test_bmaf1},{f_bias_acc},{init_factual_keyword_fairness},{test_acc},{test_bacc},{test_maf1},{test_bmaf1},{f_fairness},{f_bfairness},{cf.Epoch},{cf.BATCH}\n")
         
 def main():
     print('sys.argv={}'.format(sys.argv))

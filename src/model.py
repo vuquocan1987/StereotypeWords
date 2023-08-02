@@ -40,6 +40,10 @@ class Train:
         f_test_bacc = 0
         f_test_bmaf1 = 0
         init_factual_keyword_fairness = 999999
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        factual_outputs = torch.tensor([], dtype=torch.float, device=device)
+        counterfactual_outputs = torch.tensor([], dtype=torch.float, device=device)
         for i in range(cf.Init_epoch):
             Total_loss = []
             print('Initial training epoch: ', i)
@@ -61,12 +65,13 @@ class Train:
             self.model_x.eval()
             # test on dev set to select the best model
             with torch.no_grad():  
-                true_labels, factual_outputs = [], []       
+                true_labels = torch.tensor([], dtype=torch.float, device=device)
+                factual_outputs = torch.tensor([], dtype=torch.float, device=device)
                 for batch_idx, (x, fcx, pcx, y, y_tensor) in enumerate(dev_loader):
-                    true_labels.extend(y_tensor.cpu().data.numpy())
-
-                    factual_outputs.extend(self.model_x(x).cpu().data.numpy())
-
+                    # true_labels.extend(y_tensor.cpu().data.numpy())
+                    torch.cat(true_labels, y_tensor, 0)
+                    # factual_outputs.extend(self.model_x(x).cpu().data.numpy())
+                    torch.cat(factual_outputs, self.model_x(x), 0)
                 baseline_labels = torch.max(torch.Tensor(np.array(factual_outputs)), 1)[1]
                 baseline_labels = baseline_labels.numpy()
                 if cf.Use_GPU == True:
@@ -75,18 +80,16 @@ class Train:
                 dev_bacc = cf.Get_Report(true_labels, baseline_labels)['acc']
                 dev_bmaf1 = cf.Get_Report(true_labels, baseline_labels)['macro_f1']
                 if dev_bmaf1 > best_dev_bmaf1:
-                    true_labels, factual_outputs = [], []
+                    true_labels = torch.tensor([], dtype=torch.float, device=device)
+                    factual_outputs = torch.tensor([], dtype=torch.float, device=device)
                     best_dev_bmaf1 = dev_bmaf1
                     
                     torch.save(self.model_x.state_dict(),cf.get_init_model_path())
                     
                     for batch_idx, (x, fcx, pcx, y, y_tensor) in enumerate(test_loader):
-                        true_labels.extend(y_tensor.cpu().data.numpy())
-
-                        factual_outputs.extend(self.model_x(x).cpu().data.numpy())
-                        
-                    baseline_labels = torch.max(torch.Tensor(np.array(factual_outputs)), 1)[1]
-                    baseline_labels = baseline_labels.numpy()
+                        torch.concat(true_labels,y_tensor)
+                        torch.concat(factual_outputs,self.model_x(x))
+                    baseline_labels = torch.max(factual_outputs, 1)[1]
                     if cf.Use_GPU == True:
                         torch.cuda.empty_cache()
         
@@ -173,9 +176,9 @@ class Train:
             print('training_loss1: ', np.mean(Total_loss1))
             print('training_loss2: ', np.mean(Total_loss2))
             print('training_loss: ', np.mean(Total_loss))
-            test_acc, test_bacc, test_maf1, test_bmaf1, dev_fmaf1, dev_bmaf1 = self.Evaluate(dev_loader, test_loader, i + 1)
+            test_acc, test_bacc, test_maf1, test_bmaf1, dev_fmaf1, dev_bmaf1,bias_acc = self.Evaluate(dev_loader, test_loader, i + 1)
             factual_keyword_fairness, counterfactual_keyword_fairness = self.Fairness(test_loader)
-            write_train_process_to_disk(test_acc, test_bacc, test_maf1, test_bmaf1, dev_fmaf1, dev_bmaf1, factual_keyword_fairness, counterfactual_keyword_fairness, i + 1)
+            write_train_process_to_disk(test_acc, test_bacc, test_maf1, test_bmaf1, dev_fmaf1, dev_bmaf1, factual_keyword_fairness, counterfactual_keyword_fairness, bias_acc,i + 1)
             if f_dev_fmaf1 <= dev_fmaf1:
                 torch.save(self.model_x.state_dict(),cf.get_file_prefix() + 'xdebias.pt')
                 torch.save(self.model_s.state_dict(),cf.get_file_prefix() + 'sdebias.pt')
@@ -186,9 +189,10 @@ class Train:
                 f_test_bacc = test_bacc
                 f_fairness = counterfactual_keyword_fairness
                 f_bfairness = factual_keyword_fairness
+                f_bias_acc = bias_acc
 
 
-        return f_test_acc, f_test_bacc, f_test_maf1, f_test_bmaf1, f_fairness, f_bfairness
+        return f_test_acc, f_test_bacc, f_test_maf1, f_test_bmaf1, f_fairness, f_bfairness,f_bias_acc
 
     
     def Evaluate(self, dev_loader, test_loader, mark=''):
@@ -201,105 +205,155 @@ class Train:
         base = 0
         for sigma in range(0,41):
             cf.Sigma = sigma/20.0
-            dev_acc, dev_bacc, dev_maf1, dev_bmaf1 = self.Test_maF1(dev_loader)
+            dev_acc, dev_bacc, dev_maf1, dev_bmaf1,_ = self.Test_maF1(dev_loader)
             if dev_maf1 > base:
                 base = dev_maf1
                 best_sigma = cf.Sigma
         cf.Sigma = best_sigma
 
-        test_acc, test_bacc, test_maf1, test_bmaf1 = self.Test_maF1(test_loader)
+        test_acc, test_bacc, test_maf1, test_bmaf1, bias_acc= self.Test_maF1(test_loader,True)
 
-        self.Save(dev_maf1,test_acc, test_bacc, test_maf1, test_bmaf1, mark=mark)
-        return test_acc, test_bacc, test_maf1, test_bmaf1, dev_maf1, dev_bmaf1
+        self.Save(dev_maf1,test_acc, test_bacc, test_maf1, test_bmaf1, bias_acc,mark=mark)
+        return test_acc, test_bacc, test_maf1, test_bmaf1, dev_maf1, dev_bmaf1,bias_acc
 
+    def Test_maF1(self, test_loader,get_stereotype=False):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model_x = self.model_x.to(device)
+        self.model_s = self.model_s.to(device)
 
-    def Test_maF1(self, test_loader):
-        if cf.Use_GPU == True: torch.cuda.empty_cache()
-        if cf.Use_GPU == True:
-            torch.cuda.empty_cache()
-            self.model_x = self.model_x.cuda()
-            self.model_s = self.model_s.cuda()
+        true_labels = torch.tensor([], dtype=torch.long, device=device)
+        factual_outputs = torch.tensor([], dtype=torch.float, device=device)
+        counterfactual_outputs = torch.tensor([], dtype=torch.float, device=device)
+        y_stereotype = torch.tensor([], dtype=torch.float, device=device)
 
-        true_labels, factual_outputs, counterfactual_outputs = [], [], []
         self.model_x.eval()
         self.model_s.eval()
 
         with torch.no_grad():
             for batch_idx, (x, fcx, pcx, y, y_tensor) in enumerate(test_loader):
-                true_labels.extend(y_tensor.cpu().data.numpy())
+                # x, fcx, pcx, y_tensor = x.to(device), fcx.to(device), pcx.to(device), y_tensor.to(device)
+                true_labels = torch.cat((true_labels, y_tensor), 0)
 
                 if cf.Fusion == 'SUM_Sigmoid':
-                    factual_outputs.extend((self.model_x(x) + cf.Lambda * torch.sigmoid(self.model_s(pcx))).cpu().data.numpy())
-                    counterfactual_outputs.extend((self.model_x(fcx) + cf.Lambda * torch.sigmoid(self.model_s(pcx))).cpu().data.numpy())
+                    factual = self.model_x(x) + cf.Lambda * torch.sigmoid(self.model_s(pcx))
+                    counterfactual = self.model_x(fcx) + cf.Lambda * torch.sigmoid(self.model_s(pcx))
                 elif cf.Fusion == 'SUM_Tanh':
-                    factual_outputs.extend((self.model_x(x) + cf.Lambda * torch.tanh(self.model_s(pcx))).cpu().data.numpy())
-                    counterfactual_outputs.extend((self.model_x(fcx) + cf.Lambda * torch.tanh(self.model_s(pcx))).cpu().data.numpy())
+                    factual = self.model_x(x) + cf.Lambda * torch.tanh(self.model_s(pcx))
+                    counterfactual = self.model_x(fcx) + cf.Lambda * torch.tanh(self.model_s(pcx))
                 elif cf.Fusion == 'SUM_Linear':
-                    factual_outputs.extend((self.model_x(x) + cf.Lambda * self.model_s(pcx)).cpu().data.numpy())
-                    counterfactual_outputs.extend((self.model_x(fcx)+ cf.Lambda * self.model_s(pcx)).cpu().data.numpy())
+                    factual = self.model_x(x) + cf.Lambda * self.model_s(pcx)
+                    counterfactual = self.model_x(fcx) + cf.Lambda * self.model_s(pcx)
                 elif cf.Fusion == 'None':
-                    factual_outputs.extend(self.model_x(x).cpu().data.numpy())
-                    counterfactual_outputs.extend(self.model_x(fcx).cpu().data.numpy())
-                if cf.Use_GPU == True:
-                    torch.cuda.empty_cache()
+                    factual = self.model_x(x)
+                    counterfactual = self.model_x(fcx)
+
+                factual_outputs = torch.cat((factual_outputs, factual), 0)
+                counterfactual_outputs = torch.cat((counterfactual_outputs, counterfactual), 0)
+                y_stereotype = torch.cat((y_stereotype, self.model_s(x)), 0)
 
             predict_labels, baseline_labels = self.Counterfactual_Predict(factual_outputs, counterfactual_outputs)
-            bacc = cf.Get_Report(true_labels, baseline_labels)['acc']
-            acc = cf.Get_Report(true_labels, predict_labels)['acc']
-            bmaf1 = cf.Get_Report(true_labels, baseline_labels)['macro_f1']
-            cmaf1 = cf.Get_Report(true_labels, predict_labels)['macro_f1']
+            result = cf.Get_Report(true_labels, baseline_labels)
+            bacc = result['acc']
+            bmaf1 = result['macro_f1']
+            result = cf.Get_Report(true_labels, predict_labels)
+            acc = result['acc']
+            cmaf1 = result['macro_f1']
+            stereotype_F1 = -1
+            if get_stereotype:
+                result = cf.Get_Report(true_labels, y_stereotype)
+                stereotype_F1 = result['macro_f1']
 
-        return acc, bacc, cmaf1, bmaf1
+        return acc, bacc, cmaf1, bmaf1,stereotype_F1
 
+    # def Test_maF1(self, test_loader):
+    #     if cf.Use_GPU == True: torch.cuda.empty_cache()
+    #     if cf.Use_GPU == True:
+    #         torch.cuda.empty_cache()
+    #         self.model_x = self.model_x.cuda()
+    #         self.model_s = self.model_s.cuda()
+
+    #     true_labels, factual_outputs, counterfactual_outputs = [], [], []
+    #     self.model_x.eval()
+    #     self.model_s.eval()
+
+    #     with torch.no_grad():
+    #         for batch_idx, (x, fcx, pcx, y, y_tensor) in enumerate(test_loader):
+    #             true_labels.extend(y_tensor.cpu().data.numpy())
+    #             # accumulate the result in a torch stack
+
+    #             if cf.Fusion == 'SUM_Sigmoid':
+    #                 factual_outputs.extend((self.model_x(x) + cf.Lambda * torch.sigmoid(self.model_s(pcx))).cpu().data.numpy())
+    #                 counterfactual_outputs.extend((self.model_x(fcx) + cf.Lambda * torch.sigmoid(self.model_s(pcx))).cpu().data.numpy())
+    #             elif cf.Fusion == 'SUM_Tanh':
+    #                 factual_outputs.extend((self.model_x(x) + cf.Lambda * torch.tanh(self.model_s(pcx))).cpu().data.numpy())
+    #                 counterfactual_outputs.extend((self.model_x(fcx) + cf.Lambda * torch.tanh(self.model_s(pcx))).cpu().data.numpy())
+    #             elif cf.Fusion == 'SUM_Linear':
+    #                 factual_outputs.extend((self.model_x(x) + cf.Lambda * self.model_s(pcx)).cpu().data.numpy())
+    #                 counterfactual_outputs.extend((self.model_x(fcx)+ cf.Lambda * self.model_s(pcx)).cpu().data.numpy())
+    #             elif cf.Fusion == 'None':
+    #                 factual_outputs.extend(self.model_x(x).cpu().data.numpy())
+    #                 counterfactual_outputs.extend(self.model_x(fcx).cpu().data.numpy())
+    #             if cf.Use_GPU == True:
+    #                 torch.cuda.empty_cache()
+
+    #         predict_labels, baseline_labels = self.Counterfactual_Predict(factual_outputs, counterfactual_outputs)
+
+    #         bacc = cf.Get_Report(true_labels, baseline_labels)['acc']
+    #         acc = cf.Get_Report(true_labels, predict_labels)['acc']
+    #         bmaf1 = cf.Get_Report(true_labels, baseline_labels)['macro_f1']
+    #         cmaf1 = cf.Get_Report(true_labels, predict_labels)['macro_f1']
+
+    #     return acc, bacc, cmaf1, bmaf1
+
+    # def Counterfactual_Predict(self, factual_outputs, counterfactual_output):
+    #     factual_outputs = np.array(factual_outputs)
+    #     counterfactual_output = np.array(counterfactual_output)
+    #     debiased_outputs = factual_outputs - cf.Sigma * counterfactual_output
+    #     predicted_labels = torch.max(torch.Tensor(debiased_outputs), 1)[1]
+    #     baseline_labels = torch.max(torch.Tensor(factual_outputs), 1)[1]
+    #     return predicted_labels.numpy(), baseline_labels.numpy()
     def Counterfactual_Predict(self, factual_outputs, counterfactual_output):
-        factual_outputs = np.array(factual_outputs)
-        counterfactual_output = np.array(counterfactual_output)
         debiased_outputs = factual_outputs - cf.Sigma * counterfactual_output
-        predicted_labels = torch.max(torch.Tensor(debiased_outputs), 1)[1]
-        baseline_labels = torch.max(torch.Tensor(factual_outputs), 1)[1]
-        return predicted_labels.numpy(), baseline_labels.numpy()
-
+        predicted_labels = torch.max(debiased_outputs, 1)[1]
+        baseline_labels = torch.max(factual_outputs, 1)[1]
+        return predicted_labels, baseline_labels
     def Fairness(self, test_loader):
-
-        if cf.Use_GPU == True:
-            torch.cuda.empty_cache()
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model_x = self.model_x.to(device)
+        self.model_s = self.model_s.to(device)
 
         texts = []
-        factual_outputs = []
-        counterfactual_outputs = []
+        factual_outputs = torch.tensor([], dtype=torch.float, device=device)
+        counterfactual_outputs = torch.tensor([], dtype=torch.float, device=device)
         self.model_x.eval()
         self.model_s.eval()
+
         with torch.no_grad():
             for batch_idx, (x, fcx, pcx, y, y_tensor) in enumerate(test_loader):
-                
+                # x, fcx, pcx = x.to(device), fcx.to(device), pcx.to(device)
                 texts.extend(x)
+                
                 if self.stage == 'Init':
-                    factual_outputs.extend((self.model_x(x)).cpu().data.numpy())
-                    counterfactual_outputs.extend((self.model_x(fcx)).cpu().data.numpy())
+                    factual = self.model_x(x)
+                    counterfactual = self.model_x(fcx)
                 else:
-                    factual_outputs.extend((self.model_x(x) + cf.Lambda * torch.sigmoid(self.model_s(pcx))).cpu().data.numpy())
-                    counterfactual_outputs.extend((self.model_x(fcx) + cf.Lambda * torch.sigmoid(self.model_s(pcx))).cpu().data.numpy())
+                    factual = self.model_x(x) + cf.Lambda * torch.sigmoid(self.model_s(pcx))
+                    counterfactual = self.model_x(fcx) + cf.Lambda * torch.sigmoid(self.model_s(pcx))
 
-                if cf.Use_GPU == True:
-                    torch.cuda.empty_cache()
+                factual_outputs = torch.cat((factual_outputs, factual), 0)
+                counterfactual_outputs = torch.cat((counterfactual_outputs, counterfactual), 0)
 
             counterfactual_labels, factual_labels = self.Counterfactual_Predict(factual_outputs, counterfactual_outputs)
-
-            if cf.Use_GPU == True:
-                    torch.cuda.empty_cache()
+            counterfactual_labels, factual_labels = counterfactual_labels.cpu().numpy(), factual_labels.cpu().numpy()
 
         factual_keyword_distributions, counterfactual_keyword_distributions, w2c = [], [], {}
 
         for i, text in enumerate(texts):
-
             for word in text.split(' '):
-                
                 if w2c.get(word) is None:
                     w2c[word] = [[0 for _ in cf.YList], [0 for _ in cf.YList]]
 
-
                 w2c[word][0][factual_labels[i]] += 1
-
                 w2c[word][1][counterfactual_labels[i]] += 1
 
         for word in w2c.keys():
@@ -309,8 +363,6 @@ class Train:
             v = w2c[word][1]
             sv = sum(v)
             v = [value / sv for value in v]
-            #print(u)
-            #print(v)
             factual_keyword_distributions.append(u)
             counterfactual_keyword_distributions.append(v)
 
@@ -321,8 +373,70 @@ class Train:
 
         return factual_keyword_fairness, counterfactual_keyword_fairness
 
+    # def Fairness(self, test_loader):
 
-    def Save(self, dev_maf1, test_acc, test_bacc, test_maf1, test_bmaf1, mark=''):
+    #     if cf.Use_GPU == True:
+    #         torch.cuda.empty_cache()
+
+    #     texts = []
+    #     factual_outputs = []
+    #     counterfactual_outputs = []
+    #     self.model_x.eval()
+    #     self.model_s.eval()
+    #     with torch.no_grad():
+    #         for batch_idx, (x, fcx, pcx, y, y_tensor) in enumerate(test_loader):
+                
+    #             texts.extend(x)
+    #             if self.stage == 'Init':
+    #                 factual_outputs.extend((self.model_x(x)).cpu().data.numpy())
+    #                 counterfactual_outputs.extend((self.model_x(fcx)).cpu().data.numpy())
+    #             else:
+    #                 factual_outputs.extend((self.model_x(x) + cf.Lambda * torch.sigmoid(self.model_s(pcx))).cpu().data.numpy())
+    #                 counterfactual_outputs.extend((self.model_x(fcx) + cf.Lambda * torch.sigmoid(self.model_s(pcx))).cpu().data.numpy())
+
+    #             if cf.Use_GPU == True:
+    #                 torch.cuda.empty_cache()
+
+    #         counterfactual_labels, factual_labels = self.Counterfactual_Predict(factual_outputs, counterfactual_outputs)
+
+    #         if cf.Use_GPU == True:
+    #                 torch.cuda.empty_cache()
+
+    #     factual_keyword_distributions, counterfactual_keyword_distributions, w2c = [], [], {}
+
+    #     for i, text in enumerate(texts):
+
+    #         for word in text.split(' '):
+                
+    #             if w2c.get(word) is None:
+    #                 w2c[word] = [[0 for _ in cf.YList], [0 for _ in cf.YList]]
+
+
+    #             w2c[word][0][factual_labels[i]] += 1
+
+    #             w2c[word][1][counterfactual_labels[i]] += 1
+
+    #     for word in w2c.keys():
+    #         u = w2c[word][0]
+    #         su = sum(u)
+    #         u = [value / su for value in u]
+    #         v = w2c[word][1]
+    #         sv = sum(v)
+    #         v = [value / sv for value in v]
+    #         #print(u)
+    #         #print(v)
+    #         factual_keyword_distributions.append(u)
+    #         counterfactual_keyword_distributions.append(v)
+
+    #     uniform = [1.0 / len(cf.YList) for _ in cf.YList]
+
+    #     factual_keyword_fairness = cf.Compute_Fairness(factual_keyword_distributions, uniform)
+    #     counterfactual_keyword_fairness = cf.Compute_Fairness(counterfactual_keyword_distributions, uniform)
+
+    #     return factual_keyword_fairness, counterfactual_keyword_fairness
+
+
+    def Save(self, dev_maf1, test_acc, test_bacc, test_maf1, test_bmaf1,bias_acc, mark=''):
         id = '{}-{}-Seed={}-Epoch={} \n'.format(cf.Dataset_Name, self.model_x.name, cf.Seed, mark)
 
         report = '{} | \n'.format(id)
@@ -331,19 +445,22 @@ class Train:
         report += 'test_factual_acc={:.2%}| \n'.format(test_acc)
         report += 'test_counterfactual_maf1={:.2%}| \n'.format(test_maf1)
         report += 'test_factual_maf1={:.2%}| \n'.format(test_bmaf1)
+        report += 'test_bias_acc={:.2%}| \n'.format(bias_acc)
         writer = open(cf.Save_Path, 'a+')
         writer.write(report + '\n')
         writer.close()
         print(report)
 
 
-def write_train_process_to_disk(test_acc, test_bacc, test_maf1, test_bmaf1, dev_fmaf1, test_dev_maf1, factual_keyword_fairness, counterfactual_keyword_fairness, epoch):
-    path = "result/csv/Train.txt"
+def write_train_process_to_disk(test_acc, test_bacc, test_maf1, test_bmaf1, dev_fmaf1, test_dev_maf1, factual_keyword_fairness, counterfactual_keyword_fairness, bias_acc,epoch):
+    path = "result/csv/Train.csv"
+    if cf.IS_TESTING:
+        path = "result/csv/Tests/Train.csv"
     if not os.path.exists(path):
         with open(path, 'w') as f:
-            f.write(f"DatasetName,BaseModel,Stereotype,Epoch,TestAcc,TestBAcc,TestmaF1,TestBmaF1,DevmaF1,TestDevmaF1,FactualKeywordFairness,CounterfactualKeywordFairness,Batch,NGRAM\n")
+            f.write(f"DatasetName,BaseModel,Stereotype,Epoch,TestAcc,TestBAcc,TestmaF1,TestBmaF1,DevmaF1,TestDevmaF1,BiasAcc,FactualKeywordFairness,CounterfactualKeywordFairness,Batch,NGRAM,Alpha\n")
     with open(path, 'a') as f:
-        f.write(f"{cf.Dataset_Name},{cf.Base_Model},{cf.Stereotype.name},{epoch},{test_acc},{test_bacc},{test_maf1},{test_bmaf1},{dev_fmaf1},{test_dev_maf1},{factual_keyword_fairness},{counterfactual_keyword_fairness},{cf.BATCH},{cf.N_GRAM}\n")
+        f.write(f"{cf.Dataset_Name},{cf.Base_Model},{cf.Stereotype.name},{epoch},{test_acc},{test_bacc},{test_maf1},{test_bmaf1},{dev_fmaf1},{test_dev_maf1},{bias_acc},{factual_keyword_fairness},{counterfactual_keyword_fairness},{cf.BATCH},{cf.N_GRAM},{cf.Alpha}\n")
 class TextCNN(nn.Module):
     def __init__(self):
         super(TextCNN, self).__init__()

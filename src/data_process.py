@@ -57,7 +57,9 @@ class TextDataset():
         self.dev_examples = []
         self.test_examples = []
         self.masked_ratio = -1.0
+        self.class_count = -1
         self.prepare_data()
+        
         
 
     # read data
@@ -164,6 +166,7 @@ class TextDataset():
 
             cf.YList = sorted(
                 set(example.label for example in train_examples + dev_examples + test_examples))
+            self.class_count = len(cf.YList)
 
             for example in train_examples + dev_examples + test_examples:
                 example.label = cf.YList.index(example.label)
@@ -238,7 +241,7 @@ class TextDataset():
             for example in examples:
                 up = len(
                     [word for word in example.partial_counterfactual_text.split() if word == cf.Mask_Token])
-                down = len(example.text)
+                down = len(example.text.split())
                 Ratio += up * 1.0 / down
             Ratio = Ratio * 1.0 / len(examples)
             self.masked_ratio = Ratio

@@ -28,7 +28,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import re
 from enum import Enum, auto
-
+from torchmetrics import Accuracy, F1Score
 # All Hyperparameters
 
 Alpha = 0.05
@@ -67,11 +67,12 @@ ARTIFACT_PATH = 'result/artifacts/'
 BATCH=1
 GETTING_INIT = False
 
+
 def get_file_prefix():
     if IS_TESTING:
-        return f'{ARTIFACT_PATH}testing/{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}'
+        return f'{ARTIFACT_PATH}testing/{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}_{Alpha}'
     else:
-        return f'{ARTIFACT_PATH}{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}'
+        return f'{ARTIFACT_PATH}{Dataset_Name}_{Base_Model}_{Stereotype.name}_{N_GRAM}_{Alpha}'
 def get_init_model_path():
     if IS_TESTING:
         return f'result/test_result/{Dataset_Name}_{Base_Model}_init.pt'
@@ -147,25 +148,32 @@ def Max_Index(array):
             max_index = i
     return max_index
 
+# def Get_Report(true_labels, pred_labels):
+#     true_labels = [int(v) for v in true_labels]
+#     pred_labels = [int(v) for v in pred_labels]
+#     label_list = sorted(list(set(true_labels+pred_labels)))
+
+#     macro_f1 = metrics.f1_score(y_true=true_labels, y_pred=pred_labels, average='macro')
+
+#     acc = metrics.accuracy_score(true_labels, pred_labels)
+
+#     auc = metrics.roc_auc_score(true_labels, pred_labels) if len(label_list)==2 else -0.0
+
+#     report_map = {}
+
+#     report_map['macro_f1'] = macro_f1
+
+#     report_map['acc'] = acc
+#     report_map['auc'] = auc
+#     return report_map
 def Get_Report(true_labels, pred_labels):
-    true_labels = [int(v) for v in true_labels]
-    pred_labels = [int(v) for v in pred_labels]
-    label_list = sorted(list(set(true_labels+pred_labels)))
-
-    macro_f1 = metrics.f1_score(y_true=true_labels, y_pred=pred_labels, average='macro')
-
-    acc = metrics.accuracy_score(true_labels, pred_labels)
-
-    auc = metrics.roc_auc_score(true_labels, pred_labels) if len(label_list)==2 else -0.0
-
+    len(YList)
+    accuracy = Accuracy(task="multiclass", num_classes=len(YList)).cuda()
+    f1 = F1Score(task="multiclass", num_classes=len(YList)).cuda()
     report_map = {}
-
-    report_map['macro_f1'] = macro_f1
-
-    report_map['acc'] = acc
-    report_map['auc'] = auc
+    report_map['macro_f1'] = f1(pred_labels, true_labels)
+    report_map['acc'] = accuracy(pred_labels, true_labels)
     return report_map
-
 
 def KL(x, y):
     return scipy.stats.entropy(x, y)
